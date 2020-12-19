@@ -159,7 +159,7 @@ class G4MultiNavigator : public G4Navigator
    // STATE Information 
 
    G4int fNoActiveNavigators = 0; 
-   static const G4int fMaxNav = 16;
+   static const G4int fMaxNav = 128;
    G4VPhysicalVolume* fLastMassWorld = nullptr; 
 
    G4Navigator*  fpNavigator[fMaxNav];
