@@ -120,6 +120,31 @@
 #include "HepPolyhedron.h"
 #include "G4Visible.hh"
 
+#if (defined(G4VIS_USE_CGAL))
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wgnu-statement-expression"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+#include "CGAL/Exact_predicates_exact_constructions_kernel.h"
+#include "CGAL/Surface_mesh.h"
+#include "CGAL/Polygon_mesh_processing/corefinement.h"
+#include "CGAL/Polygon_mesh_processing/orientation.h"
+#include "CGAL/Polygon_mesh_processing/repair.h"
+#include "CGAL/Polygon_mesh_processing/triangulate_faces.h"
+
+#include "CGAL/Aff_transformation_3.h"
+#include "CGAL/Polygon_mesh_processing/transform.h"
+
+typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel;
+typedef Kernel::Point_3                                   Point;
+typedef Kernel::Vector_3                                  Vector;
+typedef CGAL::Surface_mesh<Kernel::Point_3>               Surface_mesh;
+typedef CGAL::Aff_transformation_3<Kernel>                Aff_transformation_3;
+
+#pragma GCC diagnostic pop
+#endif
+
 class G4Polyhedron : public HepPolyhedron, public G4Visible {
 public:
   G4Polyhedron ();
@@ -131,8 +156,20 @@ public:
   G4int GetNumberOfRotationStepsAtTimeOfCreation() const {
     return fNumberOfRotationStepsAtTimeOfCreation;
   }
+
+#if (defined(G4VIS_USE_CGAL))
+  Surface_mesh* GetCGALSurfaceMesh();
+#endif
+  G4Polyhedron& Transform(const G4Transform3D &t);
+
 private:
   G4int fNumberOfRotationStepsAtTimeOfCreation;
+
+#if (defined(G4VIS_USE_CGAL))
+protected:
+  Surface_mesh *cgal_sf = nullptr;
+#endif
+
 };
 
 class G4PolyhedronBox: public G4Polyhedron {

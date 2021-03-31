@@ -38,6 +38,7 @@
 
 #include "G4VGraphicsScene.hh"
 #include "G4Polyhedron.hh"
+#include "G4PolyhedronArbitrary.hh"
 #include "HepPolyhedronProcessor.h"
 
 /////////////////////////////////////////////////////////////////////
@@ -548,6 +549,17 @@ G4IntersectionSolid::DescribeYourselfTo ( G4VGraphicsScene& scene ) const
 G4Polyhedron* 
 G4IntersectionSolid::CreatePolyhedron () const 
 {
+#if G4VIS_USE_CGAL
+  Surface_mesh *s0 = this->GetConstituentSolid(0)->GetPolyhedron()->GetCGALSurfaceMesh();
+  Surface_mesh *s1 = this->GetConstituentSolid(1)->GetPolyhedron()->GetCGALSurfaceMesh();
+
+  Surface_mesh *s2 = new Surface_mesh();
+  CGAL::Polygon_mesh_processing::corefine_and_compute_intersection(*s0,*s1,*s2);
+
+  G4PolyhedronArbitrary *res = new G4PolyhedronArbitrary(s2);
+  return res;
+
+#else
   HepPolyhedronProcessor processor;
   // Stack components and components of components recursively
   // See G4BooleanSolid::StackPolyhedron
@@ -555,4 +567,5 @@ G4IntersectionSolid::CreatePolyhedron () const
   G4Polyhedron* result = new G4Polyhedron(*top);
   if (processor.execute(*result)) { return result; }
   else { return nullptr; }
+#endif
 }

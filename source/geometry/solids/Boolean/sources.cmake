@@ -41,3 +41,6 @@ geant4_define_module(NAME G4geomBoolean
 )
 
 # List any source specific properties here
+if(GEANT4_USE_CGAL)
+    geant4_module_compile_definitions(G4geomBoolean PRIVATE G4VIS_USE_CGAL)
+endif()

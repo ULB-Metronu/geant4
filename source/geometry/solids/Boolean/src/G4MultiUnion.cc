@@ -42,6 +42,7 @@
 #include "G4VGraphicsScene.hh"
 #include "G4Polyhedron.hh"
 #include "HepPolyhedronProcessor.h"
+#include "G4PolyhedronArbitrary.hh"
 
 #include "G4AutoLock.hh"
 
@@ -960,6 +961,28 @@ G4MultiUnion::DescribeYourselfTo ( G4VGraphicsScene& scene ) const
 //______________________________________________________________________________
 G4Polyhedron* G4MultiUnion::CreatePolyhedron() const
 {
+#if (defined(G4VIS_USE_CGAL))
+
+  G4VSolid* solidA = GetSolid(0);
+  const G4Transform3D transform0=GetTransformation(0);
+  G4DisplacedSolid dispSolidA("placedA",solidA,transform0);
+
+  Surface_mesh *s0 = dispSolidA.GetPolyhedron()->GetCGALSurfaceMesh();
+
+  for(G4int i=1; i<GetNumberOfSolids(); ++i) {
+    Surface_mesh *s2 = new Surface_mesh();
+    G4VSolid* solidB = GetSolid(i);
+    const G4Transform3D transform=GetTransformation(i);
+    G4DisplacedSolid dispSolidB("placedB",solidB,transform);
+    Surface_mesh *s1 = dispSolidB.GetPolyhedron()->GetCGALSurfaceMesh();
+    CGAL::Polygon_mesh_processing::corefine_and_compute_union(*s0,*s1,*s2);
+    s0 = s2;
+  }
+
+  G4PolyhedronArbitrary *res = new G4PolyhedronArbitrary(s0);
+  return (G4Polyhedron*)res;
+
+#else
   HepPolyhedronProcessor processor;
   HepPolyhedronProcessor::Operation operation = HepPolyhedronProcessor::UNION;
 
@@ -979,7 +1002,8 @@ G4Polyhedron* G4MultiUnion::CreatePolyhedron() const
   }
    
   if (processor.execute(*top)) { return top; }
-  else { return 0; } 
+  else { return 0; }
+#endif
 }
 
 //______________________________________________________________________________

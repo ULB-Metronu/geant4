@@ -31,7 +31,12 @@ G4Polyhedron::G4Polyhedron ():
   fNumberOfRotationStepsAtTimeOfCreation (fNumberOfRotationSteps)
 {}
 
-G4Polyhedron::~G4Polyhedron () {}
+G4Polyhedron::~G4Polyhedron () {
+#if G4VIS_USE_CGAL
+  if (cgal_sf != nullptr)
+    delete cgal_sf;
+#endif
+}
 
 G4Polyhedron::G4Polyhedron (const HepPolyhedron& from)
   : HepPolyhedron(from)
@@ -39,6 +44,74 @@ G4Polyhedron::G4Polyhedron (const HepPolyhedron& from)
   fNumberOfRotationStepsAtTimeOfCreation =
     from.fNumberOfRotationSteps;
 }
+
+#if (defined(G4VIS_USE_CGAL))
+Surface_mesh* G4Polyhedron::GetCGALSurfaceMesh() {
+  if (cgal_sf != nullptr) {
+    return cgal_sf;
+  }
+  else {
+    cgal_sf = new Surface_mesh();
+
+    int nVert  = this->GetNoVertices();
+    int nFacet = this->GetNoFacets();
+
+    for(int iVert = 1; iVert <= nVert; iVert++) {
+      G4Point3D v = this->GetVertex(iVert);
+      Point p(v.x(),v.y(),v.z());
+      cgal_sf->add_vertex(p);
+    }
+
+    for(int iFacet = 1; iFacet <= nFacet; iFacet++) {
+
+      G4int nNode = 0;
+      G4int *iNode = new G4int[4];
+
+      this->GetFacet(iFacet, nNode, iNode);
+
+      if (nNode == 3) {
+        cgal_sf->add_face(
+                Surface_mesh::Vertex_index(iNode[0]-1),
+                Surface_mesh::Vertex_index(iNode[1]-1),
+                Surface_mesh::Vertex_index(iNode[2]-1));
+      }
+      else if (nNode == 4) {
+        cgal_sf->add_face(Surface_mesh::Vertex_index(iNode[0]-1),
+                          Surface_mesh::Vertex_index(iNode[1]-1),
+                          Surface_mesh::Vertex_index(iNode[2]-1),
+                          Surface_mesh::Vertex_index(iNode[3]-1));
+      }
+      else  {
+        std::cout << "Surface_mesh* G4Polyhedron::GetCGALSurfaceMesh() > 4 vertices in face" << std::endl;
+      }
+      delete[] iNode;
+    }
+
+    CGAL::Polygon_mesh_processing::triangulate_faces(*cgal_sf);
+
+    return cgal_sf;
+  }
+}
+#endif
+
+G4Polyhedron& G4Polyhedron::Transform(const G4Transform3D &t) {
+  HepPolyhedron::Transform(t);
+
+#if (defined(G4VIS_USE_CGAL))
+  if(cgal_sf != nullptr) {
+    // Apply transformation to surface mesh
+    Aff_transformation_3 translation(CGAL::TRANSLATION, Vector(t.dx(), t.dy(), t.dz()));
+    Aff_transformation_3 rotation(t.xx(), t.xy(), t.xz(),
+                                  t.yx(), t.yy(), t.yz(),
+                                  t.zx(), t.zy(), t.zz(), 1);
+    CGAL::Polygon_mesh_processing::transform(rotation, *cgal_sf);
+    CGAL::Polygon_mesh_processing::transform(translation, *cgal_sf);
+  }
+#endif
+  return *this;
+
+}
+
 
 G4PolyhedronBox::G4PolyhedronBox (G4double dx, G4double dy, G4double dz):
   G4Polyhedron (HepPolyhedronBox (dx, dy, dz)) {}

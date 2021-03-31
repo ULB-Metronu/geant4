@@ -76,6 +76,9 @@ class G4PolyhedronArbitrary : public G4Polyhedron
 {
   public:
     G4PolyhedronArbitrary (const G4int nVertices, const G4int nFacets);
+#if (defined(G4VIS_USE_CGAL))
+    G4PolyhedronArbitrary (Surface_mesh*  from);
+#endif
     virtual ~G4PolyhedronArbitrary ();
     
     void AddVertex (const G4ThreeVector& v);

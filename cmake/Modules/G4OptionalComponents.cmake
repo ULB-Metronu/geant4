@@ -407,3 +407,22 @@ endif()
 
 GEANT4_ADD_FEATURE(GEANT4_USE_HDF5 "Building Geant4 analysis library with HDF5 support")
 
+#-----------------------------------------------------------------------
+# Optional support for CGAL
+#
+
+option(GEANT4_USE_CGAL "Build Geant4 with CGAL boolean" OFF)
+mark_as_advanced(GEANT4_USE_CGAL)
+
+if(GEANT4_USE_CGAL)
+  set(GEANT4_BUILD_CXXSTD "20" CACHE STRING "C++ Standard to compile against (11;14;17;20)" FORCE)
+  find_package(Boost REQUIRED)
+  find_package(CGAL REQUIRED)
+  find_package(GMP REQUIRED)
+  find_package(MPFR REQUIRED)
+
+  GEANT4_ADD_FEATURE(GEANT4_USE_CGAL "Using CGAL for boolean operations (EXPERIMENTAL)")
+
+else()
+  set(GEANT4_BUILD_CXXSTD "11" CACHE STRING "C++ Standard to compile against (11;14;17;20)" FORCE)
+endif()
