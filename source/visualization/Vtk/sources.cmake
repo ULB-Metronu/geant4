@@ -17,7 +17,7 @@
 #
 # Define the Geant4 Module.
 #
-GEANT4_DEFINE_MODULE(NAME G4visQt3D
+GEANT4_DEFINE_MODULE(NAME G4visVtk
     HEADERS
         G4VtkSceneHandler.hh
         G4VtkViewer.hh
