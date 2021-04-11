@@ -40,12 +40,12 @@ G4VtkViewer::G4VtkViewer
   G4VViewer(sceneHandler, sceneHandler.IncrementViewCount(), name) {
 
   G4cout << "G4VtkViewer::G4VtkViewer" << G4endl;
-  renderWindow->SetSize(300, 300);
-  renderWindow->SetWindowName("Cylinder");
+  renderWindow->SetSize(900, 900);
+  renderWindow->SetWindowName("Vtk viewer");
+
+  renderer->SetBackground(1,1,1);
   renderWindow->AddRenderer(renderer);
   renderWindowInteractor->SetRenderWindow(renderWindow);
-  renderWindow->Render();
-  // renderWindowInteractor->Start();
 }
 
 G4VtkViewer::~G4VtkViewer() {}
@@ -73,17 +73,17 @@ void G4VtkViewer::DrawView() {
   // the viewing angle has changed.  But graphics systems without a
   // graphical database will always need to visit the G4 kernel.
 
-  NeedKernelVisit ();  // Default is - always visit G4 kernel.
+  NeedKernelVisit();  // Default is - always visit G4 kernel.
   // Note: this routine sets the fNeedKernelVisit flag of *all* the
   // views of the scene.
 
-  ProcessView ();      // The basic logic is here.
+  ProcessView();      // The basic logic is here.
 
   // Then a view may have more to do, e.g., display the graphical
   // database.  That code should come here...
 
   // ...before finally...
-  FinishView ();       // Flush streams and/or swap buffers.
+  FinishView();       // Flush streams and/or swap buffers.
 }
 
 void G4VtkViewer::ShowView() {
@@ -91,4 +91,7 @@ void G4VtkViewer::ShowView() {
   G4cout << "G4VtkViewer::ShowView() called." << G4endl;
   // static_cast<G4VtkSceneHandler&>(fSceneHandler).PrintStores();
 #endif
+
+  renderWindow->Render();
+  renderWindowInteractor->Start();
 }

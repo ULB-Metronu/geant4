@@ -54,8 +54,8 @@ public:
   void ShowView();
 
 private:
-  vtkNew<vtkRenderer>     renderer;
-  vtkNew<vtkRenderWindow> renderWindow;
+  vtkNew<vtkRenderer>               renderer;
+  vtkNew<vtkRenderWindow>           renderWindow;
   vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
 };
 

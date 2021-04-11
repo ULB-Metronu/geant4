@@ -64,16 +64,11 @@ void G4VtkSceneHandler::PrintThings() {
   else {
     G4cout << "(not from a model)";
   }
-  G4PhysicalVolumeModel* pPVModel =
-    dynamic_cast<G4PhysicalVolumeModel*>(fpModel);
+  G4PhysicalVolumeModel* pPVModel = dynamic_cast<G4PhysicalVolumeModel*>(fpModel);
   if (pPVModel) {
-    G4cout << "\n  current physical volume: "
-           << pPVModel->GetCurrentPV()->GetName()
-           << "\n  current logical volume: "
-           // There might be a problem with the LV pointer if this is a G4LogicalVolumeModel
-           << pPVModel->GetCurrentLV()->GetName()
-           << "\n  current depth of geometry tree: "
-           << pPVModel->GetCurrentDepth();
+    G4cout << "\n  current physical volume:        " << pPVModel->GetCurrentPV()->GetName()
+           << "\n  current logical volume :        " << pPVModel->GetCurrentLV()->GetName() // There might be a problem with the LV pointer if this is a G4LogicalVolumeModel
+           << "\n  current depth of geometry tree: " << pPVModel->GetCurrentDepth();
   }
   G4cout << G4endl;
 }
