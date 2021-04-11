@@ -19,9 +19,11 @@
 #
 GEANT4_DEFINE_MODULE(NAME G4visVtk
     HEADERS
+        G4Vtk.hh
         G4VtkSceneHandler.hh
         G4VtkViewer.hh
     SOURCES
+        G4Vtk.cc
         G4VtkSceneHandler.cc
         G4VtkViewer.cc
     GRANULAR_DEPENDENCIES
