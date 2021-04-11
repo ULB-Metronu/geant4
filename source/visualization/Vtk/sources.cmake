@@ -49,7 +49,11 @@ GEANT4_DEFINE_MODULE(NAME G4visVtk
         G4tracking
         G4vis_management
     LINK_LIBRARIES
-)
+        /opt/local/lib/libvtkCommonCore-8.2.dylib
+        /opt/local/lib/libvtkRenderingCore-8.2.dylib
+        /opt/local/lib/libvtkRenderingOpenGL2-8.2.dylib
+        )
 
 # List any source specific properties here
+geant4_module_include_directories(G4visVtk PUBLIC /opt/local/include/vtk-8.2/)
 
