@@ -47,34 +47,32 @@ G4int G4VtkSceneHandler::fSceneIdCount = 0;
 // Counter for XXX scene handlers.
 
 G4VtkSceneHandler::G4VtkSceneHandler(G4VGraphicsSystem& system,
-					 const G4String& name):
-  G4VSceneHandler(system, fSceneIdCount++, name)
+                                     const G4String& name) :
+                                     G4VSceneHandler(system, fSceneIdCount++, name)
 {}
 
 G4VtkSceneHandler::~G4VtkSceneHandler() {}
 
 #ifdef G4VTKDEBUG
 void G4VtkSceneHandler::PrintThings() {
-  G4cout <<
-    "  with transformation "
-         << (void*)fpObjectTransformation;
+  //G4cout << "  with transformation " << (void*)fpObjectTransformation;
   if (fpModel) {
     G4cout << " from " << fpModel->GetCurrentDescription()
-	   << " (tag " << fpModel->GetCurrentTag()
-	   << ')';
-  } else {
+           << " (tag " << fpModel->GetCurrentTag()
+           << ')';
+  }
+  else {
     G4cout << "(not from a model)";
   }
   G4PhysicalVolumeModel* pPVModel =
     dynamic_cast<G4PhysicalVolumeModel*>(fpModel);
   if (pPVModel) {
-    G4cout <<
-      "\n  current physical volume: "
-           << pPVModel->GetCurrentPV()->GetName() <<
-      "\n  current logical volume: "
-// There might be a problem with the LV pointer if this is a G4LogicalVolumeModel
-           << pPVModel->GetCurrentLV()->GetName() <<
-      "\n  current depth of geometry tree: "
+    G4cout << "\n  current physical volume: "
+           << pPVModel->GetCurrentPV()->GetName()
+           << "\n  current logical volume: "
+           // There might be a problem with the LV pointer if this is a G4LogicalVolumeModel
+           << pPVModel->GetCurrentLV()->GetName()
+           << "\n  current depth of geometry tree: "
            << pPVModel->GetCurrentDepth();
   }
   G4cout << G4endl;
@@ -87,10 +85,8 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyline&
 #endif
 ) {
 #ifdef G4VTKDEBUG
-  G4cout <<
-    "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called.\n"
-	 << polyline
-	 << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called.\n"
+         << polyline << G4endl;
   PrintThings();
 #endif
   // Get vis attributes - pick up defaults if none.
@@ -105,10 +101,8 @@ void G4VtkSceneHandler::AddPrimitive(const G4Text&
 #endif
 ) {
 #ifdef G4VTKDEBUG
-  G4cout <<
-    "G4VtkSceneHandler::AddPrimitive(const G4Text& text) called.\n"
-	 << text
-	 << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Text& text) called.\n"
+         << text << G4endl;
   PrintThings();
 #endif
   // Get text colour - special method since default text colour is
@@ -125,10 +119,8 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle&
 #endif
 ) {
 #ifdef G4VTKDEBUG
-  G4cout <<
-    "G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) called.\n"
-	 << circle
-	 << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) called.\n"
+         << circle << G4endl;
   MarkerSizeType sizeType;
   G4double size = GetMarkerSize (circle, sizeType);
   switch (sizeType) {
@@ -157,10 +149,8 @@ void G4VtkSceneHandler::AddPrimitive(const G4Square&
 #endif
 ) {
 #ifdef G4VTKDEBUG
-  G4cout <<
-    "G4VtkSceneHandler::AddPrimitive(const G4Square& square) called.\n"
-	 << square
-	 << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Square& square) called.\n"
+         << square << G4endl;
   MarkerSizeType sizeType;
   G4double size = GetMarkerSize (square, sizeType);
   switch (sizeType) {
@@ -185,10 +175,8 @@ void G4VtkSceneHandler::AddPrimitive(const G4Square&
 
 void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
 #ifdef G4VTKDEBUG
-  G4cout <<
-    "G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) called.\n"
-	 << polyhedron
-	 << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) called.\n"
+         << polyhedron << G4endl;
   PrintThings();
 #endif
   //?? Process polyhedron.  Here are some ideas...

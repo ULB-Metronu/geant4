@@ -34,12 +34,8 @@
 #include "G4VtkSceneHandler.hh"
 #include "G4VtkViewer.hh"
 
-G4Vtk::G4Vtk():
-  G4VGraphicsSystem("G4Vtk",
-		    "Vtk",
-		    "Simplest possible graphics driver",
-		    G4VGraphicsSystem::noFunctionality  //?? Your functionality
-		    )
+G4Vtk::G4Vtk(): G4VGraphicsSystem("G4Vtk","Vtk","Simplest possible graphics driver",
+                                  G4VGraphicsSystem::noFunctionality)
 {}
 
 G4Vtk::~G4Vtk() {}
@@ -50,24 +46,20 @@ G4VSceneHandler* G4Vtk::CreateSceneHandler(const G4String& name) {
 }
 
 G4VViewer* G4Vtk::CreateViewer(G4VSceneHandler& scene,
-			       const G4String& name) {
-  G4VViewer* pView =
-    new G4VtkViewer((G4VtkSceneHandler&) scene, name);
+                               const G4String& name) {
+  G4VViewer* pView = new G4VtkViewer((G4VtkSceneHandler&) scene, name);
   if (pView) {
     if (pView->GetViewId() < 0) {
-      G4cerr <<
-	"G4Vtk::CreateViewer: ERROR flagged by negative"
-        " view id in G4VtkViewer creation."
-        "\n Destroying view and returning null pointer."
-	     << G4endl;
+      G4cerr << "G4Vtk::CreateViewer: ERROR flagged by negative"
+                " view id in G4VtkViewer creation."
+                "\n Destroying view and returning null pointer."
+                << G4endl;
       delete pView;
       pView = 0;
     }
   }
   else {
-    G4cerr <<
-      "G4Vtk::CreateViewer: ERROR: null pointer on new G4VtkViewer."
-	   << G4endl;
+    G4cerr << "G4Vtk::CreateViewer: ERROR: null pointer on new G4VtkViewer." << G4endl;
   }
   return pView;
 }

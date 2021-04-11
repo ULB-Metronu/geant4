@@ -33,18 +33,30 @@
 #ifndef G4VTKVIEWER_HH
 #define G4VTKVIEWER_HH
 
-//#define G4VTKDEBUG  // Comment this out to suppress debug code.
+#define G4VTKDEBUG  // Comment this out to suppress debug code.
 
 #include "G4VViewer.hh"
 
+#include "vtkAutoInit.h"
+#include "vtkRenderer.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkRenderWindow.h"
+
+VTK_MODULE_INIT(vtkRenderingOpenGL2)
+
 class G4VtkViewer: public G4VViewer {
 public:
-  G4VtkViewer(G4VSceneHandler&,const G4String& name);
+  G4VtkViewer(G4VSceneHandler &, const G4String &name);
   virtual ~G4VtkViewer();
   void SetView();
   void ClearView();
   void DrawView();
   void ShowView();
+
+private:
+  vtkNew<vtkRenderer>     renderer;
+  vtkNew<vtkRenderWindow> renderWindow;
+  vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
 };
 
 #endif

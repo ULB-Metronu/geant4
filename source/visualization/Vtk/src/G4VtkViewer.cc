@@ -37,7 +37,16 @@
 
 G4VtkViewer::G4VtkViewer
 (G4VSceneHandler& sceneHandler, const G4String& name):
-  G4VViewer(sceneHandler, sceneHandler.IncrementViewCount(), name) {}
+  G4VViewer(sceneHandler, sceneHandler.IncrementViewCount(), name) {
+
+  G4cout << "G4VtkViewer::G4VtkViewer" << G4endl;
+  renderWindow->SetSize(300, 300);
+  renderWindow->SetWindowName("Cylinder");
+  renderWindow->AddRenderer(renderer);
+  renderWindowInteractor->SetRenderWindow(renderWindow);
+  renderWindow->Render();
+  // renderWindowInteractor->Start();
+}
 
 G4VtkViewer::~G4VtkViewer() {}
 
@@ -80,6 +89,6 @@ void G4VtkViewer::DrawView() {
 void G4VtkViewer::ShowView() {
 #ifdef G4VTKDEBUG
   G4cout << "G4VtkViewer::ShowView() called." << G4endl;
-  static_cast<G4VtkSceneHandler&>(fSceneHandler).PrintStores();
+  // static_cast<G4VtkSceneHandler&>(fSceneHandler).PrintStores();
 #endif
 }

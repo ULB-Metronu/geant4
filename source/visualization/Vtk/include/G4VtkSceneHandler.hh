@@ -33,12 +33,11 @@
 #ifndef G4VTKSCENEHANDLER_HH
 #define G4VTKSCENEHANDLER_HH
 
-//#define G4VTKDEBUG  // Comment this out to suppress debug code.
+#define G4VTKDEBUG  // Comment this out to suppress debug code.
 
 #include "G4VSceneHandler.hh"
 
 class G4VtkSceneHandler: public G4VSceneHandler {
-
   friend class G4VtkViewer;
 
 public:
@@ -63,15 +62,12 @@ public:
   {G4VSceneHandler::AddPrimitive (scale);}
 
 protected:
-
   static G4int         fSceneIdCount;  // Counter for XXX scene handlers.
 
 private:
-
 #ifdef G4VTKDEBUG
   void PrintThings();
 #endif
-
 };
 
 #endif
