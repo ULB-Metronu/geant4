@@ -93,10 +93,14 @@ void G4VtkViewer::ShowView() {
 
   // TODO proper camera parameter settings
   vtkSmartPointer<vtkCamera> camera = vtkSmartPointer<vtkCamera>::New();
-  camera->SetPosition(0, 0, 2000);
+  camera->SetPosition(0, 0, 1000);
   camera->SetFocalPoint(0, 0, 0);
   renderer->SetActiveCamera(camera);
 
+  vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+
   renderWindow->Render();
+  renderWindowInteractor->SetInteractorStyle(style);
+  renderWindowInteractor->Initialize();
   renderWindowInteractor->Start();
 }
