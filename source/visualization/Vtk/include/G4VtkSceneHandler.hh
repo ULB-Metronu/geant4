@@ -44,6 +44,8 @@
 #include "vtkPolyData.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkActor.h"
+#include "vtkMatrix4x4.h"
+
 #pragma GCC diagnostic pop
 
 class G4VtkSceneHandler: public G4VSceneHandler {

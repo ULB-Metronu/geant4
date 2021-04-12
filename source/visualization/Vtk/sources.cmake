@@ -50,6 +50,7 @@ GEANT4_DEFINE_MODULE(NAME G4visVtk
         G4vis_management
     LINK_LIBRARIES
         /opt/local/lib/libvtkCommonCore-8.2.dylib
+        /opt/local/lib/libvtkCommonMath-8.2.dylib
         /opt/local/lib/libvtkCommonDataModel-8.2.dylib
         /opt/local/lib/libvtkRenderingCore-8.2.dylib
         /opt/local/lib/libvtkRenderingOpenGL2-8.2.dylib

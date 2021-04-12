@@ -40,6 +40,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wextra-semi"
 #include "vtkAutoInit.h"
+#include "vtkCamera.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderWindow.h"

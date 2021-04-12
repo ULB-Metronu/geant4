@@ -91,6 +91,12 @@ void G4VtkViewer::ShowView() {
   // static_cast<G4VtkSceneHandler&>(fSceneHandler).PrintStores();
 #endif
 
+  // TODO proper camera parameter settings
+  vtkSmartPointer<vtkCamera> camera = vtkSmartPointer<vtkCamera>::New();
+  camera->SetPosition(0, 0, 2000);
+  camera->SetFocalPoint(0, 0, 0);
+  renderer->SetActiveCamera(camera);
+
   renderWindow->Render();
   renderWindowInteractor->Start();
 }

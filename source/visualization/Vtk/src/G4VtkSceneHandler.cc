@@ -55,7 +55,7 @@ G4VtkSceneHandler::~G4VtkSceneHandler() {}
 
 #ifdef G4VTKDEBUG
 void G4VtkSceneHandler::PrintThings() {
-  // G4cout << "  with transformation " << fObjectTransformation.xx() << G4endl;
+  G4cout << "  with transformation " << fObjectTransformation.xx() << G4endl;
   if (fpModel) {
     G4cout << " from " << fpModel->GetCurrentDescription()
            << " (tag " << fpModel->GetCurrentTag()
@@ -167,7 +167,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Square&
 void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
 #ifdef G4VTKDEBUG
   G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) called." << G4endl;
-  PrintThings();
+  // PrintThings();
 #endif
   //?? Process polyhedron.  Here are some ideas... Assume all facets are convex quadrilaterals. Draw each G4Facet individually
   
@@ -196,7 +196,6 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
     G4Normal3D normals[4];
     G4int      nEdges;
     notLastFace = polyhedron.GetNextFacet(nEdges, vertex, edgeFlag, normals);
-    G4cout << nEdges << G4endl;
 
     vtkSmartPointer<vtkIdList> poly = vtkSmartPointer<vtkIdList>::New();
 
@@ -218,6 +217,26 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
 
   vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
   actor->SetMapper(mapper);
+
+  vtkSmartPointer<vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
+  transform->SetElement(0,0,fObjectTransformation.xx());
+  transform->SetElement(0,1,fObjectTransformation.xy());
+  transform->SetElement(0,2,fObjectTransformation.xz());
+
+  transform->SetElement(1,0,fObjectTransformation.yx());
+  transform->SetElement(1,1,fObjectTransformation.yy());
+  transform->SetElement(1,2,fObjectTransformation.yz());
+
+  transform->SetElement(2,0,fObjectTransformation.zx());
+  transform->SetElement(2,1,fObjectTransformation.zy());
+  transform->SetElement(2,2,fObjectTransformation.zz());
+
+  transform->SetElement(0,3,fObjectTransformation.dx());
+  transform->SetElement(1,3,fObjectTransformation.dy());
+  transform->SetElement(2,3,fObjectTransformation.dz());
+  transform->SetElement(3,3,1.);
+
+  actor->SetUserMatrix(transform);
 
   G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
   pVtkViewer->renderer->AddActor(actor);
