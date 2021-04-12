@@ -37,12 +37,21 @@
 
 #include "G4VSceneHandler.hh"
 
+#include "G4VtkViewer.hh"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wextra-semi"
+#include "vtkSmartPointer.h"
+#include "vtkPolyData.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkActor.h"
+#pragma GCC diagnostic pop
+
 class G4VtkSceneHandler: public G4VSceneHandler {
   friend class G4VtkViewer;
 
 public:
   G4VtkSceneHandler(G4VGraphicsSystem& system,
-		      const G4String& name);
+                    const G4String& name);
   virtual ~G4VtkSceneHandler();
 
   ////////////////////////////////////////////////////////////////
@@ -68,6 +77,7 @@ private:
 #ifdef G4VTKDEBUG
   void PrintThings();
 #endif
+
 };
 
 #endif

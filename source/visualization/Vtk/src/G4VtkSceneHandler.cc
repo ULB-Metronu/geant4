@@ -55,7 +55,7 @@ G4VtkSceneHandler::~G4VtkSceneHandler() {}
 
 #ifdef G4VTKDEBUG
 void G4VtkSceneHandler::PrintThings() {
-  //G4cout << "  with transformation " << (void*)fpObjectTransformation;
+  // G4cout << "  with transformation " << fObjectTransformation.xx() << G4endl;
   if (fpModel) {
     G4cout << " from " << fpModel->GetCurrentDescription()
            << " (tag " << fpModel->GetCurrentTag()
@@ -80,8 +80,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyline&
 #endif
 ) {
 #ifdef G4VTKDEBUG
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called.\n"
-         << polyline << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called." << G4endl;
   PrintThings();
 #endif
   // Get vis attributes - pick up defaults if none.
@@ -96,8 +95,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Text&
 #endif
 ) {
 #ifdef G4VTKDEBUG
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Text& text) called.\n"
-         << text << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Text& text) called" << G4endl;
   PrintThings();
 #endif
   // Get text colour - special method since default text colour is
@@ -114,8 +112,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle&
 #endif
 ) {
 #ifdef G4VTKDEBUG
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) called.\n"
-         << circle << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) called." << G4endl;
   MarkerSizeType sizeType;
   G4double size = GetMarkerSize (circle, sizeType);
   switch (sizeType) {
@@ -144,8 +141,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Square&
 #endif
 ) {
 #ifdef G4VTKDEBUG
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Square& square) called.\n"
-         << square << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Square& square) called" << G4endl;
   MarkerSizeType sizeType;
   G4double size = GetMarkerSize (square, sizeType);
   switch (sizeType) {
@@ -170,29 +166,62 @@ void G4VtkSceneHandler::AddPrimitive(const G4Square&
 
 void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
 #ifdef G4VTKDEBUG
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) called.\n"
-         << polyhedron << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) called." << G4endl;
   PrintThings();
 #endif
-  //?? Process polyhedron.  Here are some ideas...
-  //Assume all facets are convex quadrilaterals.
-  //Draw each G4Facet individually
+  //?? Process polyhedron.  Here are some ideas... Assume all facets are convex quadrilaterals. Draw each G4Facet individually
   
   //Get colour, etc..
   if (polyhedron.GetNoFacets() == 0) return;
 
   // Get vis attributes - pick up defaults if none.
-  const G4VisAttributes* pVA =
-    fpViewer -> GetApplicableVisAttributes (polyhedron.GetVisAttributes ());
+  const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(polyhedron.GetVisAttributes ());
 
-  // Get view parameters that the user can force through the vis
-  // attributes, thereby over-riding the current view parameter.
+  // Get view parameters that the user can force through the vis attributes, thereby over-riding the current view parameter.
   G4ViewParameters::DrawingStyle drawing_style = GetDrawingStyle (pVA);
   //G4bool isAuxEdgeVisible = GetAuxEdgeVisible (pVA);
   
   //Get colour, etc..
   //const G4Colour& c = pVA -> GetColour ();
-  
+
+  vtkSmartPointer<vtkPolyData>  polydata  = vtkSmartPointer<vtkPolyData>::New();
+  vtkSmartPointer<vtkPoints>    points    = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkCellArray> polys     = vtkSmartPointer<vtkCellArray>::New();
+
+  G4bool notLastFace;
+  int    iVert  = 0;
+  do {
+    G4Point3D  vertex[4];
+    G4int      edgeFlag[4];
+    G4Normal3D normals[4];
+    G4int      nEdges;
+    notLastFace = polyhedron.GetNextFacet(nEdges, vertex, edgeFlag, normals);
+    G4cout << nEdges << G4endl;
+
+    vtkSmartPointer<vtkIdList> poly = vtkSmartPointer<vtkIdList>::New();
+
+    // loop over vertices
+    for(int i=0; i < nEdges; i++) {
+      points->InsertNextPoint(vertex[i].x(), vertex[i].y(), vertex[i].z());
+      poly->InsertNextId(iVert);
+      iVert++;
+    }
+    polys->InsertNextCell(poly);
+
+  } while (notLastFace);
+
+  polydata->SetPoints(points);
+  polydata->SetPolys(polys);
+
+  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  mapper->SetInputData(polydata);
+
+  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+  actor->SetMapper(mapper);
+
+  G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
+  pVtkViewer->renderer->AddActor(actor);
+
   // Initial action depending on drawing style.
   switch (drawing_style) {
   case (G4ViewParameters::hsr):
@@ -212,10 +241,4 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
       break;
     }     
   }
-
-  // Loop through all the facets...
-
-  // Look at G4OpenGLSceneHandler::AddPrimitive(const G4Polyhedron&)
-  // for an example of how to get facets out of a G4Polyhedron,
-  // including how to cope with triangles if that's a problem.
 }

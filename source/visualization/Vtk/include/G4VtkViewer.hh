@@ -37,10 +37,13 @@
 
 #include "G4VViewer.hh"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wextra-semi"
 #include "vtkAutoInit.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderWindow.h"
+#pragma GCC diagnostic pop
 
 VTK_MODULE_INIT(vtkRenderingOpenGL2)
 
@@ -53,10 +56,12 @@ public:
   void DrawView();
   void ShowView();
 
-private:
   vtkNew<vtkRenderer>               renderer;
   vtkNew<vtkRenderWindow>           renderWindow;
   vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
+
+private:
+
 };
 
 #endif
