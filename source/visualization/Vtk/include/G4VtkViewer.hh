@@ -48,6 +48,8 @@
 #pragma GCC diagnostic pop
 
 VTK_MODULE_INIT(vtkRenderingOpenGL2)
+VTK_MODULE_INIT(vtkRenderingFreeType)
+
 
 class G4VtkViewer: public G4VViewer {
 public:

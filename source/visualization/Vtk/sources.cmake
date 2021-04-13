@@ -55,6 +55,8 @@ GEANT4_DEFINE_MODULE(NAME G4visVtk
         /opt/local/lib/libvtkRenderingCore-8.2.dylib
         /opt/local/lib/libvtkRenderingOpenGL2-8.2.dylib
         /opt/local/lib/libvtkInteractionStyle-8.2.dylib
+        /opt/local/lib/libvtkCommonColor-8.2.dylib
+        /opt/local/lib/libvtkRenderingFreeType-8.2.dylib
         )
 
 # List any source specific properties here

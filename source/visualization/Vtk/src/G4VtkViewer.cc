@@ -45,6 +45,15 @@ G4VViewer(sceneHandler, sceneHandler.IncrementViewCount(), name) {
   //renderer->SetBackground(1,1,1);
   renderWindow->AddRenderer(renderer);
   renderWindowInteractor->SetRenderWindow(renderWindow);
+
+  // TODO proper camera parameter settings
+  vtkSmartPointer<vtkCamera> camera = vtkSmartPointer<vtkCamera>::New();
+  camera->SetPosition(0, 0, 1000);
+  camera->SetFocalPoint(0, 0, 0);
+  renderer->SetActiveCamera(camera);
+
+  vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+  renderWindowInteractor->SetInteractorStyle(style);
 }
 
 G4VtkViewer::~G4VtkViewer() {}
@@ -91,16 +100,7 @@ void G4VtkViewer::ShowView() {
   // static_cast<G4VtkSceneHandler&>(fSceneHandler).PrintStores();
 #endif
 
-  // TODO proper camera parameter settings
-  vtkSmartPointer<vtkCamera> camera = vtkSmartPointer<vtkCamera>::New();
-  camera->SetPosition(0, 0, 1000);
-  camera->SetFocalPoint(0, 0, 0);
-  renderer->SetActiveCamera(camera);
-
-  vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-
   renderWindow->Render();
-  renderWindowInteractor->SetInteractorStyle(style);
   renderWindowInteractor->Initialize();
   renderWindowInteractor->Start();
 }

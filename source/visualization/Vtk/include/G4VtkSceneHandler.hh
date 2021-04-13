@@ -42,10 +42,15 @@
 #pragma GCC diagnostic ignored "-Wextra-semi"
 #include "vtkSmartPointer.h"
 #include "vtkPolyData.h"
+#include "vtkLine.h"
+#include "vtkNamedColors.h"
+#include "vtkProperty.h"
+#include "vtkTextProperty.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkActor.h"
+#include "vtkTextActor.h"
+#include "vtkBillboardTextActor3D.h"
 #include "vtkMatrix4x4.h"
-
 #pragma GCC diagnostic pop
 
 class G4VtkSceneHandler: public G4VSceneHandler {
