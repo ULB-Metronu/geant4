@@ -73,7 +73,7 @@ public:
   {G4VSceneHandler::AddPrimitive (scale);}
 
 protected:
-  static G4int         fSceneIdCount;  // Counter for XXX scene handlers.
+  static G4int         fSceneIdCount;  // Counter for Vtk scene handlers.
 
 private:
 #ifdef G4VTKDEBUG
