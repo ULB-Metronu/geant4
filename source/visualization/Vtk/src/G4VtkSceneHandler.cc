@@ -84,7 +84,6 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) {
 
   const size_t nLines = polyline.size();
 
-  G4cout << nLines << G4endl;
   for(size_t i=0; i < nLines; ++i) {
     points->InsertNextPoint(polyline[i].x(),
                             polyline[i].y(),
@@ -92,7 +91,6 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) {
   }
 
   vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
-
 
   for (unsigned int i = 0; i < nLines-1; i++)
   {
@@ -176,7 +174,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Text& text) {
 void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
 #ifdef G4VTKDEBUG
   G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) called." << G4endl;
-  PrintThings();
+  // PrintThings();
 #endif
 
   MarkerSizeType sizeType;
@@ -195,7 +193,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
   // Draw in world coordinates.
   vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
   polygonSource->SetNumberOfSides(50);
-  polygonSource->SetRadius(2);
+  polygonSource->SetRadius(0.5);
 
   auto position = fObjectTransformation*G4Translate3D(circle.GetPosition());
 
@@ -223,7 +221,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
       // Draw in world coordinates.
       vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
       polygonSource->SetNumberOfSides(50);
-      polygonSource->SetRadius(5);
+      polygonSource->SetRadius(0.5);
 
       auto position = fObjectTransformation*G4Translate3D(circle.GetPosition());
 
@@ -243,14 +241,12 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
       pVtkViewer->renderer->AddActor(actor);
 
   }
-  G4cout << " size: " << size << G4endl;
-
 }
 
 void G4VtkSceneHandler::AddPrimitive(const G4Square& square) {
 #ifdef G4VTKDEBUG
   G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Square& square) called" << G4endl;
-  PrintThings();
+  //PrintThings();
 #endif
 
   MarkerSizeType sizeType;
@@ -306,9 +302,6 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   // Get view parameters that the user can force through the vis attributes, thereby over-riding the current view parameter.
   G4ViewParameters::DrawingStyle drawing_style = GetDrawingStyle (pVA);
   //G4bool isAuxEdgeVisible = GetAuxEdgeVisible (pVA);
-  
-  //Get colour, etc..
-  //const G4Colour& c = pVA -> GetColour ();
 
   vtkSmartPointer<vtkPolyData>  polydata  = vtkSmartPointer<vtkPolyData>::New();
   vtkSmartPointer<vtkPoints>    points    = vtkSmartPointer<vtkPoints>::New();
