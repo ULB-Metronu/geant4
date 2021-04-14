@@ -61,12 +61,27 @@ void G4VtkViewer::SetView() {
 #ifdef G4VTKDEBUG
   G4cout << "G4VtkViewer::SetView() called." << G4endl;
 #endif
+
+  // Set camera target
+  G4Point3D target = fVP.GetCurrentTargetPoint();
+  G4cout << "CurrentTargetPoint> " << target.x() << " " << target.y() << " " << target.z() << G4endl;
+  camera->SetFocalPoint(target.x(), target.y(), target.z());
+
 }
 
 void G4VtkViewer::ClearView() {
 #ifdef G4VTKDEBUG
   G4cout << "G4VtkViewer::ClearView() called." << G4endl;
 #endif
+
+  vtkActorCollection *actors = renderer->GetActors();
+  vtkActor *actor = actors->GetLastActor();
+
+  while(actor) {
+    G4cout << actor << G4endl;
+    renderer->RemoveActor(actor);
+    actor = actors->GetLastActor();
+  }
 }
 
 void G4VtkViewer::DrawView() {
