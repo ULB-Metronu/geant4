@@ -82,6 +82,16 @@ void G4VtkViewer::ClearView() {
     renderer->RemoveActor(actor);
     actor = actors->GetLastActor();
   }
+
+  vtkPropCollection *props = renderer->GetViewProps();
+  vtkProp *prop  = props->GetLastProp();
+
+  while(prop) {
+    G4cout << prop << G4endl;
+    renderer->RemoveViewProp(prop);
+    prop = props->GetLastProp();
+  }
+
 }
 
 void G4VtkViewer::DrawView() {
