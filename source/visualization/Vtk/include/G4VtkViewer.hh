@@ -60,10 +60,11 @@ public:
   void DrawView();
   void ShowView();
 
-  vtkNew<vtkRenderer>               renderer;
-  vtkNew<vtkRenderWindow>           renderWindow;
   vtkNew<vtkCamera>                 camera;
+  vtkNew<vtkRenderer>               renderer;
   vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
+  vtkNew<vtkRenderWindow>           renderWindow;
+
 private:
 
 };
