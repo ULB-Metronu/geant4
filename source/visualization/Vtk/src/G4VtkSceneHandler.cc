@@ -181,6 +181,30 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
 
   MarkerSizeType sizeType;
   G4double size = GetMarkerSize (circle, sizeType);
+
+
+  // Draw in world coordinates.
+  vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
+  polygonSource->SetNumberOfSides(50);
+  polygonSource->SetRadius(5);
+
+  auto position = fObjectTransformation*G4Translate3D(circle.GetPosition());
+
+  G4cout << circle.GetPosition().x() << " " << circle.GetPosition().y() << " " << circle.GetPosition().z() << G4endl;
+  polygonSource->SetCenter(circle.GetPosition().x(),
+                           circle.GetPosition().y(),
+                           circle.GetPosition().z());
+
+  // Visualize
+  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  mapper->SetInputConnection(polygonSource->GetOutputPort());;
+
+  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+  actor->SetMapper(mapper);
+
+  G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
+  pVtkViewer->renderer->AddActor(actor);
+
   switch (sizeType) {
     default:
     case screen:
@@ -188,7 +212,27 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
       break;
     case world:
       // Draw in world coordinates.
-      break;
+      vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
+      polygonSource->SetNumberOfSides(50);
+      polygonSource->SetRadius(5);
+
+      auto position = fObjectTransformation*G4Translate3D(circle.GetPosition());
+
+      G4cout << circle.GetPosition().x() << " " << circle.GetPosition().y() << " " << circle.GetPosition().z() << G4endl;
+      polygonSource->SetCenter(circle.GetPosition().x(),
+                               circle.GetPosition().y(),
+                               circle.GetPosition().z());
+
+      // Visualize
+      vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      mapper->SetInputConnection(polygonSource->GetOutputPort());;
+
+      vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+      actor->SetMapper(mapper);
+
+      G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
+      pVtkViewer->renderer->AddActor(actor);
+
   }
   G4cout << " size: " << size << G4endl;
 
@@ -202,6 +246,29 @@ void G4VtkSceneHandler::AddPrimitive(const G4Square& square) {
 
   MarkerSizeType sizeType;
   G4double size = GetMarkerSize (square, sizeType);
+
+  // Draw in world coordinates.
+  vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
+  polygonSource->SetNumberOfSides(4);
+  polygonSource->SetRadius(5);
+
+  auto position = fObjectTransformation*G4Translate3D(square.GetPosition());
+
+  G4cout << square.GetPosition().x() << " " << square.GetPosition().y() << " " << square.GetPosition().z() << G4endl;
+  polygonSource->SetCenter(square.GetPosition().x(),
+                           square.GetPosition().y(),
+                           square.GetPosition().z());
+
+  // Visualize
+  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  mapper->SetInputConnection(polygonSource->GetOutputPort());;
+
+  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+  actor->SetMapper(mapper);
+
+  G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
+  pVtkViewer->renderer->AddActor(actor);
+
   switch (sizeType) {
     default:
     case screen:

@@ -50,6 +50,7 @@
 #include "vtkActor.h"
 #include "vtkTextActor.h"
 #include "vtkBillboardTextActor3D.h"
+#include "vtkRegularPolygonSource.h"
 #include "vtkMatrix4x4.h"
 #pragma GCC diagnostic pop
 
