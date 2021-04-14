@@ -51,6 +51,8 @@
 #include "vtkTextActor.h"
 #include "vtkBillboardTextActor3D.h"
 #include "vtkRegularPolygonSource.h"
+#include "vtkGlyph2D.h"
+#include "vtkGlyph3D.h"
 #include "vtkMatrix4x4.h"
 #pragma GCC diagnostic pop
 
@@ -58,8 +60,7 @@ class G4VtkSceneHandler: public G4VSceneHandler {
   friend class G4VtkViewer;
 
 public:
-  G4VtkSceneHandler(G4VGraphicsSystem& system,
-                    const G4String& name);
+  G4VtkSceneHandler(G4VGraphicsSystem& system, const G4String& name);
   virtual ~G4VtkSceneHandler();
 
   ////////////////////////////////////////////////////////////////

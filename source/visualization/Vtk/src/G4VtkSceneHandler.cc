@@ -183,21 +183,30 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
   G4double size = GetMarkerSize (circle, sizeType);
 
 
+  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+  points->InsertNextPoint(circle.GetPosition().x(),
+                          circle.GetPosition().y(),
+                          circle.GetPosition().z());
+
+  vtkNew<vtkPolyData> polydata;
+  polydata->SetPoints(points);
+
+
   // Draw in world coordinates.
   vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
   polygonSource->SetNumberOfSides(50);
-  polygonSource->SetRadius(5);
+  polygonSource->SetRadius(2);
 
   auto position = fObjectTransformation*G4Translate3D(circle.GetPosition());
 
-  G4cout << circle.GetPosition().x() << " " << circle.GetPosition().y() << " " << circle.GetPosition().z() << G4endl;
-  polygonSource->SetCenter(circle.GetPosition().x(),
-                           circle.GetPosition().y(),
-                           circle.GetPosition().z());
+  vtkSmartPointer<vtkGlyph3D> glyph3D = vtkSmartPointer<vtkGlyph3D>::New();
+  glyph3D->SetSourceConnection(polygonSource->GetOutputPort());
+  glyph3D->SetInputData(polydata);
+  glyph3D->Update();
 
   // Visualize
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInputConnection(polygonSource->GetOutputPort());;
+  mapper->SetInputConnection(glyph3D->GetOutputPort());;
 
   vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
   actor->SetMapper(mapper);
