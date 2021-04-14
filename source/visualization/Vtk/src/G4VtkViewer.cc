@@ -47,7 +47,6 @@ G4VViewer(sceneHandler, sceneHandler.IncrementViewCount(), name) {
   renderWindowInteractor->SetRenderWindow(renderWindow);
 
   // TODO proper camera parameter settings
-  vtkSmartPointer<vtkCamera> camera = vtkSmartPointer<vtkCamera>::New();
   camera->SetPosition(0, 0, 1000);
   camera->SetFocalPoint(0, 0, 0);
   renderer->SetActiveCamera(camera);

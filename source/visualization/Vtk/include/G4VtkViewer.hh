@@ -62,8 +62,8 @@ public:
 
   vtkNew<vtkRenderer>               renderer;
   vtkNew<vtkRenderWindow>           renderWindow;
+  vtkNew<vtkCamera>                 camera;
   vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
-
 private:
 
 };
