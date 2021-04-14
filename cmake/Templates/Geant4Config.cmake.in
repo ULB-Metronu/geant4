@@ -569,6 +569,14 @@ endif()
 # Reset any OpenGL Preference
 set(OpenGL_GL_PREFERENCE "${OpenGL_GL_PREFERENCE_SAVE}")
 
+# - VTK
+set(Geant4_vtk_FOUND @GEANT4_USE_VTK@)
+if(Geant4_vtk_FOUND)
+  if(("vtk" IN_LIST Geant4_FIND_COMPONENTS))
+    list(APPEND Geant4_DEFINITIONS -DG4VIS_USE_VTK)
+  endif()
+endif()
+
 #-----------------------------------------------------------------------
 # Include the files listing all the imported targets and configuring
 # Intel/MSVC Compile Features

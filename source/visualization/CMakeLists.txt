@@ -30,4 +30,6 @@ if(GEANT4_USE_QT3D)
 endif()
 
 # Vtk is optional depending on user selection
-add_subdirectory(Vtk)
+if(GEANT4_USE_VTK)
+  add_subdirectory(Vtk)
+endif()

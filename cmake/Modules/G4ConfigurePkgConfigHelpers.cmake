@@ -314,6 +314,14 @@ if(NOT GEANT4_BUILD_GRANULAR_LIBS AND UNIX)
     endforeach()
   endif()
 
+  # - OpenGL X11
+  if(GEANT4_USE_VTK)
+    set(G4_BUILTWITH_VTK "yes")
+    set(G4_CONFIG_NEEDS_VTK TRUE)
+  else()
+    set(G4_BUILTWITH_VTK "no")
+  endif()
+
   # Configure the script
   # - BUILD TREE
   # Ouch, the include path will be LONG, but at least we always have

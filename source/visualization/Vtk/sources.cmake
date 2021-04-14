@@ -57,5 +57,5 @@ GEANT4_DEFINE_MODULE(NAME G4visVtk
         )
 
 # TODO List any source specific properties here
-geant4_module_include_directories(G4visVtk PUBLIC /opt/local/include/vtk-8.2/)
+geant4_module_include_directories(G4visVtk PUBLIC ${VTK_INCLUDE})
 
