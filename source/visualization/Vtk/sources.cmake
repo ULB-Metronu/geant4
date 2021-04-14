@@ -17,6 +17,10 @@
 #
 # Define the Geant4 Module.
 #
+
+# TODO needs to be moved from here
+find_package(VTK REQUIRED)
+
 GEANT4_DEFINE_MODULE(NAME G4visVtk
     HEADERS
         G4Vtk.hh
@@ -49,16 +53,9 @@ GEANT4_DEFINE_MODULE(NAME G4visVtk
         G4tracking
         G4vis_management
     LINK_LIBRARIES
-        /opt/local/lib/libvtkCommonCore-8.2.dylib
-        /opt/local/lib/libvtkCommonMath-8.2.dylib
-        /opt/local/lib/libvtkCommonDataModel-8.2.dylib
-        /opt/local/lib/libvtkRenderingCore-8.2.dylib
-        /opt/local/lib/libvtkRenderingOpenGL2-8.2.dylib
-        /opt/local/lib/libvtkInteractionStyle-8.2.dylib
-        /opt/local/lib/libvtkCommonColor-8.2.dylib
-        /opt/local/lib/libvtkRenderingFreeType-8.2.dylib
+        ${VTK_LIBRARIES}
         )
 
-# List any source specific properties here
+# TODO List any source specific properties here
 geant4_module_include_directories(G4visVtk PUBLIC /opt/local/include/vtk-8.2/)
 
