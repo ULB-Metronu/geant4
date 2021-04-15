@@ -159,7 +159,7 @@ void G4Voxelizer::BuildVoxelLimits(std::vector<G4VSolid*>& solids,
       TransformLimits(min, max, transform);
       fBoxes[i].hlen = (max - min) / 2;
       transform.getDecomposition(scale,rot,transl); 
-      fBoxes[i].pos = transl.getTranslation();
+      fBoxes[i].pos = (max + min) / 2.;
     }
     fTotalCandidates = fBoxes.size();
   }

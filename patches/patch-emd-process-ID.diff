@@ -1,0 +1,13 @@
+diff --git a/source/processes/hadronic/management/include/G4HadronicProcessType.hh b/source/processes/hadronic/management/include/G4HadronicProcessType.hh
+index 06e65173b..5d36b215b 100644
+--- a/source/processes/hadronic/management/include/G4HadronicProcessType.hh
++++ b/source/processes/hadronic/management/include/G4HadronicProcessType.hh
+@@ -48,6 +48,7 @@ enum G4HadronicProcessType
+   fHadronAtRest =     151,
+   fLeptonAtRest =     152,
+   fChargeExchange =   161,
+-  fRadioactiveDecay = 210
++  fRadioactiveDecay = 210,
++  fEMDissociation =   310
+ };
+ #endif
