@@ -1,0 +1,95 @@
+diff --git a/source/persistency/gdml/src/G4GDMLWriteSolids.cc b/source/persistency/gdml/src/G4GDMLWriteSolids.cc
+index 11560fe35..e1eda62bf 100644
+--- a/source/persistency/gdml/src/G4GDMLWriteSolids.cc
++++ b/source/persistency/gdml/src/G4GDMLWriteSolids.cc
+@@ -116,19 +116,19 @@ void G4GDMLWriteSolids::MultiUnionWrite(xercesc::DOMElement* solElement,
+     xercesc::DOMElement* solidElement = NewElement("solid");
+     solidElement->setAttributeNode(NewAttribute("ref", solidref));
+     xercesc::DOMElement* multiUnionNodeElement = NewElement("multiUnionNode");
+-    multiUnionNodeElement->setAttributeNode(NewAttribute("name", nodeName));
++    multiUnionNodeElement->setAttributeNode(NewAttribute("name", name+"_"+nodeName));
+     multiUnionNodeElement->appendChild(solidElement);  // Append solid to node
+     if((std::fabs(pos.x()) > kLinearPrecision) ||
+        (std::fabs(pos.y()) > kLinearPrecision) ||
+        (std::fabs(pos.z()) > kLinearPrecision))
+     {
+-      PositionWrite(multiUnionNodeElement, name + "_pos", pos);
++      PositionWrite(multiUnionNodeElement, name + "_" + nodeName + "_pos", pos);
+     }
+     if((std::fabs(rot.x()) > kAngularPrecision) ||
+        (std::fabs(rot.y()) > kAngularPrecision) ||
+        (std::fabs(rot.z()) > kAngularPrecision))
+     {
+-      RotationWrite(multiUnionNodeElement, name + "_rot", rot);
++      RotationWrite(multiUnionNodeElement, name + "_" + nodeName + "_rot", rot);
+     }
+     multiUnionElement->appendChild(multiUnionNodeElement);  // Append node
+   }
+diff --git a/source/persistency/gdml/src/G4GDMLWriteStructure.cc b/source/persistency/gdml/src/G4GDMLWriteStructure.cc
+index 42c7c21b7..81100774c 100644
+--- a/source/persistency/gdml/src/G4GDMLWriteStructure.cc
++++ b/source/persistency/gdml/src/G4GDMLWriteStructure.cc
+@@ -273,7 +273,7 @@ void G4GDMLWriteStructure::AssemblyWrite(xercesc::DOMElement* volumeElement,
+   assemblyElement->setAttributeNode(NewAttribute("name", name));
+ 
+   auto vit = myassembly->GetTripletsIterator();
+-
++  
+   G4int depth = 0;
+   const G4String ModuleName;
+ 
+@@ -303,14 +303,14 @@ void G4GDMLWriteStructure::AssemblyWrite(xercesc::DOMElement* volumeElement,
+        std::fabs(pos.y()) > kLinearPrecision ||
+        std::fabs(pos.z()) > kLinearPrecision)
+     {
+-      PositionWrite(physvolElement, "Position_" + std::to_string(i5), pos);
++      PositionWrite(physvolElement, name + "_position_" + std::to_string(i5), pos);
+     }
+ 
+     if(std::fabs(rot.x()) > kAngularPrecision ||
+        std::fabs(rot.y()) > kAngularPrecision ||
+        std::fabs(rot.z()) > kAngularPrecision)
+     {
+-      RotationWrite(physvolElement, "Rotation_" + std::to_string(i5), rot);
++      RotationWrite(physvolElement, name + "_rotation_" + std::to_string(i5), rot);
+     }
+     ++vit;
+   }
+@@ -610,6 +610,7 @@ G4Transform3D G4GDMLWriteStructure::TraverseVolumeTree(
+     daughterCount = 0;
+   }
+ 
++  std::map<int, std::vector<int> > assemblyIDToAddedImprints;
+   std::vector<G4int> addedImprints;
+ 
+   for(G4int i = 0; i < daughterCount; ++i)  // Traverse all the children!
+@@ -693,6 +694,7 @@ G4Transform3D G4GDMLWriteStructure::TraverseVolumeTree(
+             {
+               AssemblyWrite(structureElement, assemblyID);
+               addedAssemblies.push_back(assemblyID);
++	      assemblyIDToAddedImprints[assemblyID] = std::vector<int>();		       
+             }
+ 
+             // 2) add the assembly (as physical volume) to the mother volume
+@@ -701,10 +703,10 @@ G4Transform3D G4GDMLWriteStructure::TraverseVolumeTree(
+ 
+             // here I need a check if assembly has been already added to the
+             // mother volume
+-            if(std::find(addedImprints.cbegin(), addedImprints.cend(),
+-                         imprintID) == addedImprints.cend())
++	    std::vector<int>& addedImprints2 = assemblyIDToAddedImprints[assemblyID];		   
++            if(std::find(addedImprints2.cbegin(), addedImprints2.cend(), imprintID) == addedImprints2.cend())
+             {
+-              G4String imprintname = "Imprint_" + std::to_string(imprintID);
++              G4String imprintname = "Imprint_" + std::to_string(imprintID) + "_";
+               imprintname          = GenerateName(imprintname, physvol);
+ 
+               // I need to get those two from the  container of imprints from
+@@ -758,6 +760,7 @@ G4Transform3D G4GDMLWriteStructure::TraverseVolumeTree(
+               volumeElement->appendChild(physvolElement);
+               //
+               addedImprints.push_back(imprintID);
++	      addedImprints2.push_back(imprintID);
+             }
+           }
+           else  // not part of assembly, so a normal physical volume
