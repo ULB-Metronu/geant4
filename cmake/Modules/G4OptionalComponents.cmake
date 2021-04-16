@@ -426,3 +426,44 @@ if(GEANT4_USE_CGAL)
 else()
   set(GEANT4_BUILD_CXXSTD "11" CACHE STRING "C++ Standard to compile against (11;14;17;20)" FORCE)
 endif()
+
+# TODO (add option for VTK)
+option(GEANT4_USE_VTK "Build Geant4 with VTK visualisation" OFF)
+mark_as_advanced(GEANT4_USE_VTK)
+if(GEANT4_USE_VTK)
+  find_package(VTK COMPONENTS
+          vtkCommonColor
+          vtkCommonCore
+          vtkFiltersSources
+          vtkInteractionStyle
+          vtkRenderingContextOpenGL2
+          vtkRenderingCore
+          vtkRenderingFreeType
+          vtkRenderingGL2PSOpenGL2
+          vtkRenderingOpenGL2
+          CMAKE_FIND_ROOT_PATH_BOTH)
+#          QUIET)
+
+  GEANT4_ADD_FEATURE(GEANT4_USE_VTK "Using VTK visualiser (EXPERIMENTAL)")
+  include(${VTK_USE_FILE})
+endif()
+
+#MESSAGE(STATUS ${VTK_DIR})
+#MESSAGE(STATUS ${VTK_INSTALL_PREFIX})
+#MESSAGE(STATUS ${VTK_MAJOR_VERSION})
+#MESSAGE(STATUS ${VTK_MINOR_VERSION})
+#MESSAGE(STATUS ${VTK_LIBRARIES})
+
+# TODO made full path to libraries... feel like it should not
+# be like this
+foreach(lib ${VTK_LIBRARIES})
+  if(${lib} MATCHES "vtk*")
+    set(libNew ${VTK_INSTALL_PREFIX}/lib/lib${lib}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.dylib)
+  else()
+    set(libNew ${lib})
+  endif()
+
+  list(APPEND VTK_LIBRARIES_NEW ${libNew})
+endforeach()
+
+set(VTK_LIBRARIES ${VTK_LIBRARIES_NEW})
