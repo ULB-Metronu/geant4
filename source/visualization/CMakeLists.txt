@@ -28,3 +28,8 @@ endif()
 if(GEANT4_USE_QT3D)
   add_subdirectory(Qt3D)
 endif()
+
+# Vtk is optional depending on user selection
+if(GEANT4_USE_VTK)
+  add_subdirectory(Vtk)
+endif()
