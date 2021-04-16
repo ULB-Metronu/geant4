@@ -18,9 +18,6 @@
 # Define the Geant4 Module.
 #
 
-# TODO needs to be moved from here
-find_package(VTK REQUIRED)
-
 GEANT4_DEFINE_MODULE(NAME G4visVtk
     HEADERS
         G4Vtk.hh
