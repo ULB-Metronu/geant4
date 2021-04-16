@@ -18,18 +18,17 @@
 # Define the Geant4 Module.
 #
 
-# TODO needs to be moved from here
-find_package(VTK REQUIRED)
-
 GEANT4_DEFINE_MODULE(NAME G4visVtk
     HEADERS
         G4Vtk.hh
         G4VtkSceneHandler.hh
         G4VtkViewer.hh
+        vtkTensorGlyphColor.h
     SOURCES
         G4Vtk.cc
         G4VtkSceneHandler.cc
         G4VtkViewer.cc
+        vtkTensorGlyphColor.cxx
     GRANULAR_DEPENDENCIES
         G4csg
         G4geometrymng

@@ -38,11 +38,17 @@
 G4VtkViewer::G4VtkViewer (G4VSceneHandler& sceneHandler, const G4String& name) :
 G4VViewer(sceneHandler, sceneHandler.IncrementViewCount(), name) {
 
+  vtkObject::GlobalWarningDisplayOff();
+
   G4cout << "G4VtkViewer::G4VtkViewer" << G4endl;
-  renderWindow->SetSize(900, 900);
+
+  G4cout << "G4VtkViewer::G4VtkViewer> " << fVP.GetWindowSizeHintX() << " " << fVP.GetWindowSizeHintY() << G4endl;
+  G4cout << "G4VtkViewer::G4VtkViewer> " << fVP.GetWindowLocationHintX() << " " << fVP.GetWindowLocationHintY() << G4endl;
+
+  renderWindow->SetSize(fVP.GetWindowSizeHintX(), fVP.GetWindowSizeHintY());
+  renderWindow->SetPosition(fVP.GetWindowLocationHintX(), fVP.GetWindowLocationHintY());
   renderWindow->SetWindowName("Vtk viewer");
 
-  //renderer->SetBackground(1,1,1);
   renderWindow->AddRenderer(renderer);
   renderWindowInteractor->SetRenderWindow(renderWindow);
 
@@ -59,14 +65,61 @@ G4VtkViewer::~G4VtkViewer() {}
 
 void G4VtkViewer::SetView() {
 #ifdef G4VTKDEBUG
-  G4cout << "G4VtkViewer::SetView() called." << G4endl;
+  G4cout << "G4VtkViewer::SetView() called>" << G4endl;
+  G4cout << fVP << G4endl;
 #endif
 
-  // Set camera target
-  G4Point3D target = fVP.GetCurrentTargetPoint();
-  G4cout << "CurrentTargetPoint> " << target.x() << " " << target.y() << " " << target.z() << G4endl;
-  camera->SetFocalPoint(target.x(), target.y(), target.z());
+  // culling
+  G4bool isCulling          = fVP.IsCulling();
+  G4bool isCullingInvisible = fVP.IsCullingInvisible();
+  G4bool isDensityCulling   = fVP.IsDensityCulling();
+  G4bool isCullingCovered   = fVP.IsCullingCovered();
 
+  G4cout << "G4VtkViewer::SetView() called> isCulling:         " << isCulling          << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> isCullingInvisible:" << isCullingInvisible << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> isDensityCulling:  " << isDensityCulling   << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> isCullingCovered:  " << isCullingCovered   << G4endl;
+
+  // Interaction (rotation style)
+  G4ViewParameters::RotationStyle rotationStyle  = fVP.GetRotationStyle();
+  if (rotationStyle == G4ViewParameters::RotationStyle::freeRotation) {
+    G4cout << "G4VtkViewer::SetView() called> setting freeRotation " << G4endl;
+    vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+    // renderWindowInteractor->SetInteractorStyle(style);
+  }
+  else if(rotationStyle == G4ViewParameters::RotationStyle::constrainUpDirection) {
+    G4cout << "G4VtkViewer::SetView() called> setting constrainedUpDirection " << G4endl;
+    vtkSmartPointer<vtkInteractorStyleTerrain> style = vtkSmartPointer<vtkInteractorStyleTerrain>::New();
+    // renderWindowInteractor->SetInteractorStyle(style);
+  }
+
+
+  // Camera
+  G4Point3D viewpointDirection = fVP.GetViewpointDirection();
+  // G4double  cameraDistance     = fVP.GetCameraDistance();
+  G4double  fieldHalfAngle     = fVP.GetFieldHalfAngle();
+  G4double  zoomFactor         = fVP.GetZoomFactor();
+  G4double  dolly              = fVP.GetDolly();
+  G4Point3D targetPoint        = fVP.GetCurrentTargetPoint();
+  const G4Vector3D upVector    = fVP.GetUpVector();
+
+  G4cout << "G4VtkViewer::SetView() called>      rotationStyle: " << rotationStyle << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> viewpointDirection: " << viewpointDirection.x() << " " << viewpointDirection.y() << " " << viewpointDirection.z() << G4endl;
+  // G4cout << "G4VtkViewer::SetView() called>     cameraDistance: " << cameraDistance << G4endl;
+  G4cout << "G4VtkViewer::SetView() called>     fieldHalfAngle: " << fieldHalfAngle << G4endl;
+  G4cout << "G4VtkViewer::SetView() called>         zoomFactor: " << zoomFactor << G4endl;
+  G4cout << "G4VtkViewer::SetView() called>              dolly: " << dolly << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> CurrentTargetPoint: " << targetPoint.x() << " " << targetPoint.y() << " " << targetPoint.z() << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> UpVector          : " << upVector.x() << " " << upVector.y() << " " << upVector.z() << G4endl;
+
+  camera->SetFocalPoint(targetPoint.x(), targetPoint.y(), targetPoint.z());
+  // camera->SetPosition();
+
+  // Background colour
+  const G4Colour backgroundColour = fVP.GetBackgroundColour();
+  renderer->SetBackground(backgroundColour.GetRed(),
+                          backgroundColour.GetBlue(),
+                          backgroundColour.GetGreen());
 }
 
 void G4VtkViewer::ClearView() {
@@ -91,6 +144,9 @@ void G4VtkViewer::ClearView() {
     renderer->RemoveViewProp(prop);
     prop = props->GetLastProp();
   }
+
+  G4VtkSceneHandler& fVtkSceneHandler = dynamic_cast<G4VtkSceneHandler&>(fSceneHandler);
+  fVtkSceneHandler.Clear();
 
 }
 
@@ -124,6 +180,8 @@ void G4VtkViewer::ShowView() {
   // static_cast<G4VtkSceneHandler&>(fSceneHandler).PrintStores();
 #endif
 
+  G4VtkSceneHandler& fVtkSceneHandler = dynamic_cast<G4VtkSceneHandler&>(fSceneHandler);
+  fVtkSceneHandler.Modified();
   renderWindow->Render();
   renderWindowInteractor->Initialize();
   renderWindowInteractor->Start();

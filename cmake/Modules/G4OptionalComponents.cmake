@@ -415,7 +415,7 @@ option(GEANT4_USE_CGAL "Build Geant4 with CGAL boolean" OFF)
 mark_as_advanced(GEANT4_USE_CGAL)
 
 if(GEANT4_USE_CGAL)
-  set(GEANT4_BUILD_CXXSTD "20" CACHE STRING "C++ Standard to compile against (11;14;17;20)" FORCE)
+  set(GEANT4_BUILD_CXXSTD "17" CACHE STRING "C++ Standard to compile against (11;14;17;20)" FORCE)
   find_package(Boost REQUIRED)
   find_package(CGAL REQUIRED)
   find_package(GMP REQUIRED)
@@ -431,7 +431,61 @@ endif()
 option(GEANT4_USE_VTK "Build Geant4 with VTK visualisation" OFF)
 mark_as_advanced(GEANT4_USE_VTK)
 if(GEANT4_USE_VTK)
+
   find_package(VTK REQUIRED)
+
+  # check version
+  if(${VTK_VERSION} MATCHES "9")
+    find_package(VTK 9 REQUIRED COMPONENTS
+                  CommonColor
+                  CommonCore
+                  FiltersSources
+                  FiltersGeneral
+                  InteractionStyle
+                  RenderingCore
+                  RenderingFreeType
+                  RenderingGL2PSOpenGL2
+                  RenderingOpenGL2
+                  CMAKE_FIND_ROOT_PATH_BOTH)
+    MESSAGE("${VTK_INSTALL_PREFIX}")
+  else()
+    find_package(VTK 8 REQUIRED  COMPONENTS
+                  vtkCommonColor
+                  vtkCommonCore
+                  vtkFiltersSources
+                  vtkInteractionStyle
+                  vtkRenderingContextOpenGL2
+                  vtkRenderingCore
+                  vtkRenderingFreeType
+                  vtkRenderingGL2PSOpenGL2
+                  vtkRenderingOpenGL2
+                  CMAKE_FIND_ROOT_PATH_BOTH)
+    include(${VTK_USE_FILE})
+
+    MESSAGE(${VTK_INSTALL_PREFIX})
+
+    foreach(lib ${VTK_LIBRARIES})
+      if(${lib} MATCHES "vtk*")
+        set(libNew ${VTK_INSTALL_PREFIX}/lib/lib${lib}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.dylib)
+      else()
+        set(libNew ${lib})
+      endif()
+
+      list(APPEND VTK_LIBRARIES_NEW ${libNew})
+      #MESSAGE(${lib})
+      #MESSAGE(${libNew})
+    endforeach()
+
+    set(VTK_LIBRARIES ${VTK_LIBRARIES_NEW})
+  endif()
+
   GEANT4_ADD_FEATURE(GEANT4_USE_VTK "Using VTK visualiser (EXPERIMENTAL)")
 endif()
+
+# MESSAGE(STATUS ${VTK_DIR})
+# MESSAGE(STATUS ${VTK_INSTALL_PREFIX})
+# MESSAGE(STATUS ${VTK_MAJOR_VERSION})
+# MESSAGE(STATUS ${VTK_MINOR_VERSION})
+# MESSAGE(STATUS ${VTK_LIBRARIES})
+
 

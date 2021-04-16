@@ -33,21 +33,23 @@
 #ifndef G4VTKVIEWER_HH
 #define G4VTKVIEWER_HH
 
-#define G4VTKDEBUG  // Comment this out to suppress debug code.
+// #define G4VTKDEBUG  // Comment this out to suppress debug code.
 
 #include "G4VViewer.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wextra-semi"
+#include "vtkObject.h"
 #include "vtkAutoInit.h"
 #include "vtkCamera.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderWindow.h"
 #include "vtkInteractorStyleTrackballCamera.h"
+#include "vtkInteractorStyleTerrain.h"
 #pragma GCC diagnostic pop
 
-VTK_MODULE_INIT(vtkRenderingOpenGL2)
+// VTK_MODULE_INIT(vtkRenderingOpenGL2)
 VTK_MODULE_INIT(vtkRenderingFreeType)
 
 
@@ -56,6 +58,7 @@ public:
   G4VtkViewer(G4VSceneHandler &, const G4String &name);
   virtual ~G4VtkViewer();
   void SetView();
+  void SetGeant4View() {};
   void ClearView();
   void DrawView();
   void ShowView();

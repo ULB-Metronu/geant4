@@ -362,6 +362,12 @@ if(Geant4_hdf5_FOUND)
   include("${CMAKE_CURRENT_LIST_DIR}/G4HDF5Shim.cmake")
 endif()
 
+# - CGAL
+set(Geant4_cgal_FOUND @GEANT4_USE_CGAL@)
+if(Geant4_cgal_FOUND)
+  find_dependency(CGAL)
+endif()
+
 #-----------------------------------------------------------------------
 # UI/VIS
 #
@@ -575,6 +581,8 @@ if(Geant4_vtk_FOUND)
   if(("vtk" IN_LIST Geant4_FIND_COMPONENTS))
     list(APPEND Geant4_DEFINITIONS -DG4VIS_USE_VTK)
   endif()
+  find_package(VTK @VTK_VERSION_MAJOR@ REQUIRED NO_DEFAULT_PATH PATHS @VTK_DIR@)
+  set(_geant4_use_vtk_library ON)
 endif()
 
 #-----------------------------------------------------------------------
@@ -648,6 +656,14 @@ if(_geant4_use_inventor_library)
     Geant4::G4OpenInventor${_geant4_lib_use_suffix}
     )
 endif()
+
+if(_geant4_use_vtk_library)
+    list(APPEND _geant4_internal_libraries
+      Geant4::G4visVtk${_geant4_lib_use_suffix}
+    )
+    list(APPEND Geant4_DEFINITIONS -DG4VIS_USE_VTK)
+endif()
+
 
 # - G3toG4 if it's requested
 if(_geant4_use_g3tog4_library)
