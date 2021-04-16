@@ -51,6 +51,7 @@
 #include "vtkTextActor.h"
 #include "vtkBillboardTextActor3D.h"
 #include "vtkRegularPolygonSource.h"
+#include "vtkFeatureEdges.h"
 #include "vtkGlyph2D.h"
 #include "vtkGlyph3D.h"
 #include "vtkMatrix4x4.h"

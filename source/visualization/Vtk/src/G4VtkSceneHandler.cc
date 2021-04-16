@@ -331,8 +331,22 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   polydata->SetPoints(points);
   polydata->SetPolys(polys);
 
+  /*
+   */
+  vtkSmartPointer<vtkFeatureEdges> featureEdges = vtkSmartPointer<vtkFeatureEdges>::New();
+  featureEdges->SetInputData(polydata);
+  featureEdges->SetColoring(true);
+  featureEdges->BoundaryEdgesOff();
+  featureEdges->NonManifoldEdgesOff();
+  featureEdges->ManifoldEdgesOff();
+  featureEdges->FeatureEdgesOn();
+  featureEdges->SetFeatureAngle(1);
+  featureEdges->Update();
+
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   mapper->SetInputData(polydata);
+  // mapper->SetInputConnection(featureEdges->GetOutputPort());
+  // mapper->SetScalarModeToUseCellData();
 
   vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
   actor->SetMapper(mapper);
