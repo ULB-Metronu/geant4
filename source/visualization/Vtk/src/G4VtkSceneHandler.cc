@@ -108,6 +108,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) {
 
   // Add the lines to the dataset
   polyData->SetLines(lines);
+
   // Setup actor and mapper
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   mapper->SetInputData(polyData);
@@ -133,7 +134,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) {
   transform->SetElement(2,3,fObjectTransformation.dz());
   transform->SetElement(3,3,1.);
 
-  //actor->SetUserMatrix(transform);
+  // actor->SetUserMatrix(transform);
 
   // Setup actor and mapper
   vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
@@ -153,21 +154,25 @@ void G4VtkSceneHandler::AddPrimitive(const G4Text& text) {
   G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Text& text) called" << G4endl;
   // PrintThings();
 #endif
-  vtkSmartPointer<vtkBillboardTextActor3D> actor = vtkSmartPointer<vtkBillboardTextActor3D>::New();
-  actor->SetInput(text.GetText().c_str());
+
+  auto fpVisAttribs = text.GetVisAttributes();
+  const G4Colour &c = GetTextColour(text);
+  G4double opacity = c.GetAlpha();
 
   auto position = fObjectTransformation*G4Translate3D(text.GetPosition());
-
-  G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
 
   double x = text.GetPosition().x();
   double y = text.GetPosition().y();
   double z = text.GetPosition().z();
 
+  vtkSmartPointer<vtkBillboardTextActor3D> actor = vtkSmartPointer<vtkBillboardTextActor3D>::New();
+  actor->SetInput(text.GetText().c_str());
   actor->SetPosition(x,y,z);
-  actor->GetTextProperty()->SetFontSize (24);
-  actor->GetTextProperty()->SetColor ( 1.0, 0.0, 0.0 );
+  actor->GetTextProperty()->SetFontSize (text.GetScreenSize());
+  actor->GetTextProperty()->SetColor(c.GetRed(), c.GetBlue(), c.GetGreen());
+  actor->GetTextProperty()->SetOpacity(opacity);
 
+  G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
   pVtkViewer->renderer->AddActor(actor);
 }
 
