@@ -311,10 +311,6 @@ void G4VtkSceneHandler::AddPrimitive(const G4Square& square) {
 }
 
 void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
-#ifdef G4VTKDEBUG
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) called." << G4endl;
-  // PrintThings();
-#endif
 
   //Get colour, etc..
   if (polyhedron.GetNoFacets() == 0) return;
@@ -327,6 +323,14 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   // Get view parameters that the user can force through the vis attributes, thereby over-riding the current view parameter.
   G4ViewParameters::DrawingStyle drawing_style = GetDrawingStyle(pVA);
   //G4bool isAuxEdgeVisible = GetAuxEdgeVisible (pVA);
+
+#ifdef G4VTKDEBUG
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) called." << G4endl;
+  G4cout << colour.GetRed() << " " << colour.GetBlue() << " " << colour.GetGreen() << G4endl;
+  // PrintThings();
+#endif
+
+
 
   vtkSmartPointer<vtkPolyData>  polydata  = vtkSmartPointer<vtkPolyData>::New();
   vtkSmartPointer<vtkPoints>    points    = vtkSmartPointer<vtkPoints>::New();
@@ -399,27 +403,23 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   actor->GetProperty()->SetOpacity(colour.GetAlpha());
   actor->SetVisibility(isVisible);
 
-  G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
-  pVtkViewer->renderer->AddActor(actor);
-
-
   // Initial action depending on drawing style.
   switch (drawing_style) {
-  case (G4ViewParameters::hsr):
-    {
-      break;
-    }
-  case (G4ViewParameters::hlr):
-    {
-      break;
-    }
-  case (G4ViewParameters::wireframe):
-    {
-      break;
-    }
-  default:
-    {
-      break;
-    }     
+  case (G4ViewParameters::hsr): {
+    actor->GetProperty()->SetRepresentationToSurface();
+    break;
   }
+  case (G4ViewParameters::hlr): {
+    actor->GetProperty()->SetRepresentationToSurface();
+    break;
+  }
+  case (G4ViewParameters::wireframe): {
+    actor->GetProperty()->SetRepresentationToWireframe();
+    break;
+  }
+  default: {break;}
+  }
+
+  G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
+  pVtkViewer->renderer->AddActor(actor);
 }
