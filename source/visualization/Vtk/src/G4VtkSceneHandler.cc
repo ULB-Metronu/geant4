@@ -150,14 +150,32 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) {
 }
 
 void G4VtkSceneHandler::AddPrimitive(const G4Text& text) {
-#ifdef G4VTKDEBUG
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Text& text) called" << G4endl;
-  // PrintThings();
-#endif
 
-  auto fpVisAttribs = text.GetVisAttributes();
+  MarkerSizeType sizeType;
+  GetMarkerSize(text,sizeType);
+  const G4VisAttributes *fpVisAttribs = text.GetVisAttributes();
   const G4Colour &c = GetTextColour(text);
   G4double opacity = c.GetAlpha();
+
+#ifdef G4VTKDEBUG
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Text& text) called " << text.GetText() << " " << sizeType << G4endl;
+  // G4cout << text << G4endl;
+  // PrintThings();
+  switch (sizeType) {
+    default:
+      G4cout << "default" << G4endl;
+      break;
+    case screen:
+      // Draw in screen coordinates.
+      G4cout << "screen" << G4endl;
+      break;
+    case world:
+      G4cout << "world" << G4endl;
+      break;
+  }
+
+#endif
+
 
   auto position = fObjectTransformation*G4Translate3D(text.GetPosition());
 
@@ -303,9 +321,11 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
 
   // Get vis attributes - pick up defaults if none.
   const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(polyhedron.GetVisAttributes ());
+  G4Color colour    = pVA->GetColour();
+  G4bool  isVisible = pVA->IsVisible();
 
   // Get view parameters that the user can force through the vis attributes, thereby over-riding the current view parameter.
-  G4ViewParameters::DrawingStyle drawing_style = GetDrawingStyle (pVA);
+  G4ViewParameters::DrawingStyle drawing_style = GetDrawingStyle(pVA);
   //G4bool isAuxEdgeVisible = GetAuxEdgeVisible (pVA);
 
   vtkSmartPointer<vtkPolyData>  polydata  = vtkSmartPointer<vtkPolyData>::New();
@@ -322,7 +342,6 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
     notLastFace = polyhedron.GetNextFacet(nEdges, vertex, edgeFlag, normals);
 
     vtkSmartPointer<vtkIdList> poly = vtkSmartPointer<vtkIdList>::New();
-
     // loop over vertices
     for(int i=0; i < nEdges; i++) {
       points->InsertNextPoint(vertex[i].x(), vertex[i].y(), vertex[i].z());
@@ -376,8 +395,13 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
 
   actor->SetUserMatrix(transform);
 
+  actor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
+  actor->GetProperty()->SetOpacity(colour.GetAlpha());
+  actor->SetVisibility(isVisible);
+
   G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
   pVtkViewer->renderer->AddActor(actor);
+
 
   // Initial action depending on drawing style.
   switch (drawing_style) {

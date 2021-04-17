@@ -76,9 +76,15 @@ public:
   // class methods if not otherwise defined to avoid warnings about
   // hiding of base class methods.
   void AddPrimitive(const G4Polymarker& polymarker)
-  {G4VSceneHandler::AddPrimitive (polymarker);}
+  {
+    G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polymarker& polymarker) called." << G4endl;
+    G4VSceneHandler::AddPrimitive (polymarker);
+  }
   void AddPrimitive(const G4Scale& scale)
-  {G4VSceneHandler::AddPrimitive (scale);}
+  {
+    G4cout << "G4VtkSceneHandler::AddScale(const G4Scale& scale) called." << G4endl;
+    G4VSceneHandler::AddPrimitive(scale);
+  }
 
 protected:
   static G4int         fSceneIdCount;  // Counter for Vtk scene handlers.
