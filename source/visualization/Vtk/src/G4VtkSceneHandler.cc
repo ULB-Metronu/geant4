@@ -80,6 +80,11 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) {
   // PrintThings();
 #endif
 
+  // Get vis attributes - pick up defaults if none.
+  const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(polyline.GetVisAttributes());
+  G4Color colour             = pVA->GetColour();
+  G4double lineWidth         = pVA->GetLineWidth();
+
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
   const size_t nLines = polyline.size();
@@ -137,9 +142,8 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) {
   // actor->SetUserMatrix(transform);
 
   // Setup actor and mapper
-  vtkSmartPointer<vtkNamedColors> colors = vtkSmartPointer<vtkNamedColors>::New();
-  actor->GetProperty()->SetLineWidth(4);
-  actor->GetProperty()->SetColor(colors->GetColor3d("Peacock").GetData());
+  actor->GetProperty()->SetLineWidth(lineWidth);
+  actor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
   actor->SetVisibility(true);
   actor->GetProperty()->BackfaceCullingOff();
   actor->GetProperty()->FrontfaceCullingOff();
@@ -175,7 +179,6 @@ void G4VtkSceneHandler::AddPrimitive(const G4Text& text) {
   }
 
 #endif
-
 
   auto position = fObjectTransformation*G4Translate3D(text.GetPosition());
 
@@ -316,7 +319,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   if (polyhedron.GetNoFacets() == 0) return;
 
   // Get vis attributes - pick up defaults if none.
-  const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(polyhedron.GetVisAttributes ());
+  const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(polyhedron.GetVisAttributes());
   G4Color colour    = pVA->GetColour();
   G4bool  isVisible = pVA->IsVisible();
 
