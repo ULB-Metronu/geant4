@@ -48,6 +48,7 @@
 #include "vtkTextProperty.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkActor.h"
+#include "vtkFollower.h"
 #include "vtkTextActor.h"
 #include "vtkBillboardTextActor3D.h"
 #include "vtkRegularPolygonSource.h"
