@@ -39,7 +39,7 @@ G4VtkViewer::G4VtkViewer (G4VSceneHandler& sceneHandler, const G4String& name) :
 G4VViewer(sceneHandler, sceneHandler.IncrementViewCount(), name) {
 
   G4cout << "G4VtkViewer::G4VtkViewer" << G4endl;
-  renderWindow->SetSize(900, 900);
+  renderWindow->SetSize(2000, 2000);
   renderWindow->SetWindowName("Vtk viewer");
 
   //renderer->SetBackground(1,1,1);
