@@ -141,11 +141,14 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) {
 
 void G4VtkSceneHandler::AddPrimitive(const G4Text& text) {
 
-  MarkerSizeType sizeType;
+  G4VSceneHandler::MarkerSizeType sizeType;
   GetMarkerSize(text,sizeType);
   const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(text.GetVisAttributes());
   G4Color colour             = pVA->GetColour();
   G4double opacity           = colour.GetAlpha();
+  G4Text::Layout layout      = text.GetLayout();
+  G4double xOffset           = text.GetXOffset();
+  G4double yOffset           = text.GetYOffset();
 
   auto position = fObjectTransformation*G4Translate3D(text.GetPosition());
   double x = text.GetPosition().x();
@@ -158,11 +161,9 @@ void G4VtkSceneHandler::AddPrimitive(const G4Text& text) {
   G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called>   colour: " << colour.GetRed() << " " << colour.GetBlue() << " " << colour.GetGreen()  << G4endl;
   G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called>    alpha: " << colour.GetAlpha() << G4endl;
   G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called> position: " << x << " " << y << " " << z << G4endl;
-
+  G4cout << text << G4endl;
   switch (sizeType) {
     default:
-      G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called> default" << G4endl;
-      break;
     case screen:
       // Draw in screen coordinates.
       G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called> screen" << G4endl;
@@ -171,18 +172,37 @@ void G4VtkSceneHandler::AddPrimitive(const G4Text& text) {
       G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called> world" << G4endl;
       break;
   }
-
 #endif
 
-  vtkSmartPointer<vtkBillboardTextActor3D> actor = vtkSmartPointer<vtkBillboardTextActor3D>::New();
-  actor->SetInput(text.GetText().c_str());
-  actor->SetPosition(x,y,z);
-  actor->GetTextProperty()->SetFontSize (text.GetScreenSize());
-  actor->GetTextProperty()->SetColor(colour.GetRed(), colour.GetBlue(), colour.GetGreen());
-  actor->GetTextProperty()->SetOpacity(opacity);
+  switch (sizeType) {
+    default:
+    case (screen): {
+      vtkSmartPointer <vtkTextActor> actor = vtkSmartPointer<vtkTextActor>::New();
+      actor->SetInput(text.GetText().c_str());
+      actor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+      // actor->SetTextScaleModeToViewport();
+      actor->SetPosition((x+1.)/2.0, (y+1.)/2.);
+      actor->GetTextProperty()->SetFontSize(text.GetScreenSize());
+      actor->GetTextProperty()->SetColor(colour.GetRed(), colour.GetBlue(), colour.GetGreen());
+      actor->GetTextProperty()->SetOpacity(opacity);
 
-  G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
-  pVtkViewer->renderer->AddActor(actor);
+      G4VtkViewer *pVtkViewer = dynamic_cast<G4VtkViewer *>(fpViewer);
+      pVtkViewer->renderer->AddActor(actor);
+
+    }
+    case world: {
+      vtkSmartPointer <vtkBillboardTextActor3D> actor = vtkSmartPointer<vtkBillboardTextActor3D>::New();
+      actor->SetInput(text.GetText().c_str());
+      actor->SetPosition(x, y, z);
+      actor->GetTextProperty()->SetFontSize(text.GetScreenSize());
+      actor->GetTextProperty()->SetColor(colour.GetRed(), colour.GetBlue(), colour.GetGreen());
+      actor->GetTextProperty()->SetOpacity(opacity);
+
+      G4VtkViewer *pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
+      pVtkViewer->renderer->AddActor(actor);
+      break;
+    }
+  }
 }
 
 void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
