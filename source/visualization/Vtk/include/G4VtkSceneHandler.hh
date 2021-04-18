@@ -77,11 +77,13 @@ public:
   // hiding of base class methods.
   void AddPrimitive(const G4Polymarker& polymarker)
   {
+    G4cout << "=================================" << G4endl;
     G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polymarker& polymarker) called." << G4endl;
     G4VSceneHandler::AddPrimitive (polymarker);
   }
   void AddPrimitive(const G4Scale& scale)
   {
+    G4cout << "=================================" << G4endl;
     G4cout << "G4VtkSceneHandler::AddScale(const G4Scale& scale) called." << G4endl;
     G4VSceneHandler::AddPrimitive(scale);
   }

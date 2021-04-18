@@ -75,15 +75,20 @@ void G4VtkSceneHandler::PrintThings() {
 #endif
 
 void G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) {
-#ifdef G4VTKDEBUG
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called." << G4endl;
-  // PrintThings();
-#endif
 
   // Get vis attributes - pick up defaults if none.
   const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(polyline.GetVisAttributes());
   G4Color colour             = pVA->GetColour();
+  G4double opacity           = colour.GetAlpha();
   G4double lineWidth         = pVA->GetLineWidth();
+
+#ifdef G4VTKDEBUG
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called>           " << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called>    colour: " << colour.GetRed() << " " << colour.GetBlue() << " " << colour.GetGreen()  << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called>     alpha: " << colour.GetAlpha() << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called> lineWidth: " << lineWidth << G4endl;
+
+#endif
 
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
@@ -121,29 +126,10 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) {
   vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
   actor->SetMapper(mapper);
 
-  vtkSmartPointer<vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
-  transform->SetElement(0,0,fObjectTransformation.xx());
-  transform->SetElement(0,1,fObjectTransformation.xy());
-  transform->SetElement(0,2,fObjectTransformation.xz());
-
-  transform->SetElement(1,0,fObjectTransformation.yx());
-  transform->SetElement(1,1,fObjectTransformation.yy());
-  transform->SetElement(1,2,fObjectTransformation.yz());
-
-  transform->SetElement(2,0,fObjectTransformation.zx());
-  transform->SetElement(2,1,fObjectTransformation.zy());
-  transform->SetElement(2,2,fObjectTransformation.zz());
-
-  transform->SetElement(0,3,fObjectTransformation.dx());
-  transform->SetElement(1,3,fObjectTransformation.dy());
-  transform->SetElement(2,3,fObjectTransformation.dz());
-  transform->SetElement(3,3,1.);
-
-  // actor->SetUserMatrix(transform);
-
   // Setup actor and mapper
   actor->GetProperty()->SetLineWidth(lineWidth);
   actor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
+  actor->GetProperty()->SetOpacity(opacity);
   actor->SetVisibility(true);
   actor->GetProperty()->BackfaceCullingOff();
   actor->GetProperty()->FrontfaceCullingOff();
@@ -157,40 +143,42 @@ void G4VtkSceneHandler::AddPrimitive(const G4Text& text) {
 
   MarkerSizeType sizeType;
   GetMarkerSize(text,sizeType);
-  const G4VisAttributes *fpVisAttribs = text.GetVisAttributes();
-  const G4Colour &c = GetTextColour(text);
-  G4double opacity = c.GetAlpha();
+  const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(text.GetVisAttributes());
+  G4Color colour             = pVA->GetColour();
+  G4double opacity           = colour.GetAlpha();
+
+  auto position = fObjectTransformation*G4Translate3D(text.GetPosition());
+  double x = text.GetPosition().x();
+  double y = text.GetPosition().y();
+  double z = text.GetPosition().z();
 
 #ifdef G4VTKDEBUG
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Text& text) called " << text.GetText() << " " << sizeType << G4endl;
-  // G4cout << text << G4endl;
-  // PrintThings();
+  G4cout << "=================================" << G4endl;
+  G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called>     text: " << text.GetText() << " sizeType:" << sizeType << G4endl;
+  G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called>   colour: " << colour.GetRed() << " " << colour.GetBlue() << " " << colour.GetGreen()  << G4endl;
+  G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called>    alpha: " << colour.GetAlpha() << G4endl;
+  G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called> position: " << x << " " << y << " " << z << G4endl;
+
   switch (sizeType) {
     default:
-      G4cout << "default" << G4endl;
+      G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called> default" << G4endl;
       break;
     case screen:
       // Draw in screen coordinates.
-      G4cout << "screen" << G4endl;
+      G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called> screen" << G4endl;
       break;
     case world:
-      G4cout << "world" << G4endl;
+      G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called> world" << G4endl;
       break;
   }
 
 #endif
 
-  auto position = fObjectTransformation*G4Translate3D(text.GetPosition());
-
-  double x = text.GetPosition().x();
-  double y = text.GetPosition().y();
-  double z = text.GetPosition().z();
-
   vtkSmartPointer<vtkBillboardTextActor3D> actor = vtkSmartPointer<vtkBillboardTextActor3D>::New();
   actor->SetInput(text.GetText().c_str());
   actor->SetPosition(x,y,z);
   actor->GetTextProperty()->SetFontSize (text.GetScreenSize());
-  actor->GetTextProperty()->SetColor(c.GetRed(), c.GetBlue(), c.GetGreen());
+  actor->GetTextProperty()->SetColor(colour.GetRed(), colour.GetBlue(), colour.GetGreen());
   actor->GetTextProperty()->SetOpacity(opacity);
 
   G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
@@ -198,10 +186,6 @@ void G4VtkSceneHandler::AddPrimitive(const G4Text& text) {
 }
 
 void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
-#ifdef G4VTKDEBUG
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) called." << G4endl;
-  // PrintThings();
-#endif
 
   MarkerSizeType sizeType;
   G4double size = GetMarkerSize (circle, sizeType);
@@ -209,7 +193,15 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
   // Get vis attributes - pick up defaults if none.
   const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(circle.GetVisAttributes());
   G4Color colour    = pVA->GetColour();
+  G4double opacity  = colour.GetAlpha();
   G4bool  isVisible = pVA->IsVisible();
+
+#ifdef G4VTKDEBUG
+  G4cout << "=================================" << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) called>           " << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) called>   colour: " << colour.GetRed() << " " << colour.GetBlue() << " " << colour.GetGreen()  << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) called>    alpha: " << colour.GetAlpha() << G4endl;
+#endif
 
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
   points->InsertNextPoint(circle.GetPosition().x(),
@@ -223,7 +215,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
   // Draw in world coordinates.
   vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
   polygonSource->SetNumberOfSides(50);
-  polygonSource->SetRadius(0.5);
+  polygonSource->SetRadius(size);
 
   auto position = fObjectTransformation*G4Translate3D(circle.GetPosition());
 
@@ -239,46 +231,26 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
   vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
   actor->SetMapper(mapper);
 
+  actor->GetProperty()->SetColor(colour.GetRed(), colour.GetBlue(), colour.GetGreen());
+  actor->GetProperty()->SetOpacity(opacity);
+  actor->SetVisibility(isVisible);
+
   G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
   pVtkViewer->renderer->AddActor(actor);
 
   switch (sizeType) {
     default:
+      break;
     case screen:
-      // Draw in screen coordinates.
       break;
     case world:
-      // Draw in world coordinates.
-      vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
-      polygonSource->SetNumberOfSides(50);
-      polygonSource->SetRadius(0.5);
-
-      auto position = fObjectTransformation*G4Translate3D(circle.GetPosition());
-
-      G4cout << circle.GetPosition().x() << " " << circle.GetPosition().y() << " " << circle.GetPosition().z() << G4endl;
-      polygonSource->SetCenter(circle.GetPosition().x(),
-                               circle.GetPosition().y(),
-                               circle.GetPosition().z());
-
-      // Visualize
-      vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-      mapper->SetInputConnection(polygonSource->GetOutputPort());;
-
-      vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-      actor->SetMapper(mapper);
-
-      actor->GetProperty()->SetColor(colour.GetRed(), colour.GetBlue(), colour.GetGreen());
-      actor->GetProperty()->SetOpacity(colour.GetAlpha());
-      actor->SetVisibility(isVisible);
-
-      G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
-      // pVtkViewer->renderer->AddActor(actor);
-
+      break;
   }
 }
 
 void G4VtkSceneHandler::AddPrimitive(const G4Square& square) {
 #ifdef G4VTKDEBUG
+  G4cout << "=================================" << G4endl;
   G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Square& square) called" << G4endl;
   //PrintThings();
 #endif
@@ -294,7 +266,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Square& square) {
   // Draw in world coordinates.
   vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
   polygonSource->SetNumberOfSides(4);
-  polygonSource->SetRadius(5);
+  polygonSource->SetRadius(size);
 
   auto position = fObjectTransformation*G4Translate3D(square.GetPosition());
 
@@ -336,18 +308,26 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   if (polyhedron.GetNoFacets() == 0) return;
 
   // Get vis attributes - pick up defaults if none.
-  const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(polyhedron.GetVisAttributes());
-  G4Color colour    = pVA->GetColour();
-  G4bool  isVisible = pVA->IsVisible();
+  const G4VisAttributes* pVA           = fpViewer -> GetApplicableVisAttributes(polyhedron.GetVisAttributes());
+  G4Color colour                       = pVA->GetColour();
+  G4bool  isVisible                    = pVA->IsVisible();
+  G4double lineWidth                   = pVA->GetLineWidth();
+  G4VisAttributes::LineStyle lineStyle = pVA->GetLineStyle();
+
+  // G4double lineWidthScale = drawing_style.GetGlobalLineWidthScale();
 
   // Get view parameters that the user can force through the vis attributes, thereby over-riding the current view parameter.
   G4ViewParameters::DrawingStyle drawing_style = GetDrawingStyle(pVA);
   //G4bool isAuxEdgeVisible = GetAuxEdgeVisible (pVA);
 
 #ifdef G4VTKDEBUG
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) called." << G4endl;
-  G4cout << colour.GetRed() << " " << colour.GetBlue() << " " << colour.GetGreen() << G4endl;
-  // PrintThings();
+  G4cout << "=================================" << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) called> " << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) called>     colour:" << colour.GetRed() << " " << colour.GetBlue() << " " << colour.GetGreen() << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) called>      alpha:" << colour.GetAlpha() << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) called>  lineWidth:" << lineWidth << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) called>  lineStyle:" << lineStyle << G4endl;
+
 #endif
 
   vtkSmartPointer<vtkPolyData>  polydata  = vtkSmartPointer<vtkPolyData>::New();
@@ -377,17 +357,15 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   polydata->SetPoints(points);
   polydata->SetPolys(polys);
 
-  /*
-   */
-  vtkSmartPointer<vtkFeatureEdges> featureEdges = vtkSmartPointer<vtkFeatureEdges>::New();
-  featureEdges->SetInputData(polydata);
-  featureEdges->SetColoring(true);
-  featureEdges->BoundaryEdgesOff();
-  featureEdges->NonManifoldEdgesOff();
-  featureEdges->ManifoldEdgesOff();
-  featureEdges->FeatureEdgesOn();
-  featureEdges->SetFeatureAngle(1);
-  featureEdges->Update();
+  // vtkSmartPointer<vtkFeatureEdges> featureEdges = vtkSmartPointer<vtkFeatureEdges>::New();
+  // featureEdges->SetInputData(polydata);
+  // featureEdges->SetColoring(true);
+  // featureEdges->BoundaryEdgesOff();
+  // featureEdges->NonManifoldEdgesOff();
+  // featureEdges->ManifoldEdgesOff();
+  // featureEdges->FeatureEdgesOn();
+  // featureEdges->SetFeatureAngle(1);
+  // featureEdges->Update();
 
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   mapper->SetInputData(polydata);
@@ -419,6 +397,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
 
   actor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
   actor->GetProperty()->SetOpacity(colour.GetAlpha());
+  actor->GetProperty()->SetLineWidth(lineWidth);
   actor->SetVisibility(isVisible);
 
   // Initial action depending on drawing style.
