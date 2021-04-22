@@ -39,7 +39,12 @@ G4VtkViewer::G4VtkViewer (G4VSceneHandler& sceneHandler, const G4String& name) :
 G4VViewer(sceneHandler, sceneHandler.IncrementViewCount(), name) {
 
   G4cout << "G4VtkViewer::G4VtkViewer" << G4endl;
-  renderWindow->SetSize(2000, 2000);
+
+  G4cout << "G4VtkViewer::G4VtkViewer> " << fVP.GetWindowSizeHintX() << " " << fVP.GetWindowSizeHintY() << G4endl;
+  G4cout << "G4VtkViewer::G4VtkViewer> " << fVP.GetWindowLocationHintX() << " " << fVP.GetWindowLocationHintY() << G4endl;
+
+  renderWindow->SetSize(fVP.GetWindowSizeHintX(), fVP.GetWindowSizeHintY());
+  renderWindow->SetPosition(fVP.GetWindowLocationHintX(), fVP.GetWindowLocationHintY());
   renderWindow->SetWindowName("Vtk viewer");
 
   //renderer->SetBackground(1,1,1);
@@ -59,14 +64,40 @@ G4VtkViewer::~G4VtkViewer() {}
 
 void G4VtkViewer::SetView() {
 #ifdef G4VTKDEBUG
-  G4cout << "G4VtkViewer::SetView() called." << G4endl;
+  G4cout << "G4VtkViewer::SetView() called>" << G4endl;
+  G4cout << fVP << G4endl;
 #endif
 
-  // Set camera target
-  G4Point3D target = fVP.GetCurrentTargetPoint();
-  G4cout << "CurrentTargetPoint> " << target.x() << " " << target.y() << " " << target.z() << G4endl;
-  camera->SetFocalPoint(target.x(), target.y(), target.z());
+  // culling
+  G4bool isCulling          = fVP.IsCulling();
+  G4bool isCullingInvisible = fVP.IsCullingInvisible();
+  G4bool isDensityCulling   = fVP.IsDensityCulling();
+  G4bool isCullingCovered   = fVP.IsCullingCovered();
 
+  G4cout << "G4VtkViewer::SetView() called> isCulling:         " << isCulling          << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> isCullingInvisible:" << isCullingInvisible << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> isDensityCulling:  " << isDensityCulling   << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> isCullingCovered:  " << isCullingCovered   << G4endl;
+
+  // Camera
+  G4Point3D viewpointDirection = fVP.GetViewpointDirection();
+  // G4double  cameraDistance     = fVP.GetCameraDistance();
+  G4double  dolly              = fVP.GetDolly();
+  G4Point3D targetPoint        = fVP.GetCurrentTargetPoint();
+
+  G4cout << "G4VtkViewer::SetView() called> ViewpointDirection: " << viewpointDirection.x() << " " << viewpointDirection.y() << " " << viewpointDirection.z() << G4endl;
+  // G4cout << "G4VtkViewer::SetView() called>     cameraDistance: " << cameraDistance << G4endl;
+  G4cout << "G4VtkViewer::SetView() called>              dolly: " << dolly << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> CurrentTargetPoint: " << targetPoint.x() << " " << targetPoint.y() << " " << targetPoint.z() << G4endl;
+
+  camera->SetFocalPoint(targetPoint.x(), targetPoint.y(), targetPoint.z());
+  // camera->SetPosition();
+
+  // Background colour
+  const G4Colour backgroundColour = fVP.GetBackgroundColour();
+  renderer->SetBackground(backgroundColour.GetRed(),
+                          backgroundColour.GetBlue(),
+                          backgroundColour.GetGreen());
 }
 
 void G4VtkViewer::ClearView() {
