@@ -93,7 +93,6 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) {
   G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called>    colour: " << colour.GetRed() << " " << colour.GetBlue() << " " << colour.GetGreen()  << G4endl;
   G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called>     alpha: " << colour.GetAlpha() << G4endl;
   G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called> lineWidth: " << lineWidth << G4endl;
-
 #endif
 
   vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
@@ -170,7 +169,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Text& text) {
   G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called>   colour: " << colour.GetRed() << " " << colour.GetBlue() << " " << colour.GetGreen()  << G4endl;
   G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called>    alpha: " << colour.GetAlpha() << G4endl;
   G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called> position: " << x << " " << y << " " << z << G4endl;
-  G4cout << text << G4endl;
+  // G4cout << text << G4endl;
   switch (sizeType) {
     default:
     case screen:
@@ -245,10 +244,14 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
   polygonSource->SetNumberOfSides(15);
   polygonSource->SetRadius(size);
 
+  vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
+  sphereSource->SetRadius(size);
+
   auto position = fObjectTransformation*G4Translate3D(circle.GetPosition());
 
   vtkSmartPointer<vtkGlyph3D> glyph3D = vtkSmartPointer<vtkGlyph3D>::New();
-  glyph3D->SetSourceConnection(polygonSource->GetOutputPort());
+  // glyph3D->SetSourceConnection(polygonSource->GetOutputPort());
+  glyph3D->SetSourceConnection(sphereSource->GetOutputPort());
   glyph3D->SetInputData(polydata);
   glyph3D->Update();
 
@@ -256,15 +259,18 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   mapper->SetInputConnection(glyph3D->GetOutputPort());;
 
+  // Need the camera a little earlier
+  G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
+
   //vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
   vtkSmartPointer<vtkFollower> actor = vtkSmartPointer<vtkFollower>::New();
   actor->SetMapper(mapper);
+  //actor->SetCamera(pVtkViewer->camera);
 
   actor->GetProperty()->SetColor(colour.GetRed(), colour.GetBlue(), colour.GetGreen());
   actor->GetProperty()->SetOpacity(opacity);
   actor->SetVisibility(isVisible);
 
-  G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
   pVtkViewer->renderer->AddActor(actor);
 
   switch (sizeType) {
