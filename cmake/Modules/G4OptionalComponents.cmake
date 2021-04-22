@@ -415,7 +415,7 @@ option(GEANT4_USE_CGAL "Build Geant4 with CGAL boolean" OFF)
 mark_as_advanced(GEANT4_USE_CGAL)
 
 if(GEANT4_USE_CGAL)
-  set(GEANT4_BUILD_CXXSTD "20" CACHE STRING "C++ Standard to compile against (11;14;17;20)" FORCE)
+  set(GEANT4_BUILD_CXXSTD "17" CACHE STRING "C++ Standard to compile against (11;14;17;20)" FORCE)
   find_package(Boost REQUIRED)
   find_package(CGAL REQUIRED)
   find_package(GMP REQUIRED)
