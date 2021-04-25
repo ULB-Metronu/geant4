@@ -33,9 +33,11 @@
 #ifndef G4VTKSCENEHANDLER_HH
 #define G4VTKSCENEHANDLER_HH
 
-#define G4VTKDEBUG  // Comment this out to suppress debug code.
+// #define G4VTKDEBUG  // Comment this out to suppress debug code.
 
 #include "G4VSceneHandler.hh"
+
+#include <map>
 
 #include "G4VtkViewer.hh"
 #pragma GCC diagnostic push
@@ -56,6 +58,7 @@
 #include "vtkFeatureEdges.h"
 #include "vtkGlyph2D.h"
 #include "vtkGlyph3D.h"
+#include "vtkVertexGlyphFilter.h"
 #include "vtkMatrix4x4.h"
 #pragma GCC diagnostic pop
 
@@ -90,8 +93,112 @@ public:
     G4VSceneHandler::AddPrimitive(scale);
   }
 
+  void Modified() {
+    for (auto it = polylineDataMap.begin(); it != polylineDataMap.end(); it++)
+      it->second->Modified();
+    for (auto it = polylineLineMap.begin(); it != polylineLineMap.end(); it++)
+      it->second->Modified();
+
+    for (auto it = circleDataMap.begin(); it != circleDataMap.end(); it++) {
+      it->second->Modified();
+    }
+
+    for (auto it = squareDataMap.begin(); it != squareDataMap.end(); it++) {
+      it->second->Modified();
+    }
+
+    G4cout << "G4VtkSceneHandler::Modified()   polyline styles: " << polylineVisAttributesMap.size() << G4endl;
+    for (auto it = polylineLineMap.begin(); it != polylineLineMap.end(); it++)
+      G4cout << "G4VtkSceneHandler::Modified() polyline segments: " << it->second->GetNumberOfCells() << G4endl;
+
+    G4cout << "G4VtkSceneHandler::Modified()     circle styles: " << circleVisAttributesMap.size() << G4endl;
+    for (auto it = circleDataMap.begin(); it != circleDataMap.end(); it++)
+      G4cout << "G4VtkSceneHandler::Modified()           circles: " << it->second->GetNumberOfPoints() << G4endl;
+
+    G4cout << "G4VtkSceneHandler::Modified()     square styles: " << squareVisAttributesMap.size() << G4endl;
+    for (auto it = squareDataMap.begin(); it != squareDataMap.end(); it++)
+      G4cout << "G4VtkSceneHanler::Modified()           squares: " << it->second->GetNumberOfPoints() << G4endl;
+
+    G4cout << "G4VtkSceneHandler::Modified()  unique polyhedra: " << polyhedronDataMap.size() << G4endl;
+    G4cout << "G4VtkSceneHandler::Modified()  placed polyhedra: " << polyhedronActorMap.size() << G4endl;
+
+
+  }
+
+  void Clear() {
+    polylineVisAttributesMap.clear();
+    polylineDataMap.clear();
+    polylineLineMap.clear();
+    polylinePolyDataMap.clear();
+    polylinePolyDataMapperMap.clear();
+    polylinePolyDataActorMap.clear();
+
+    for (auto it = polylineDataMap.begin(); it != polylineDataMap.end(); it++)
+      it->second->Reset();
+    for (auto it = polylineLineMap.begin(); it != polylineLineMap.end(); it++)
+      it->second->Reset();
+
+    circleVisAttributesMap.clear();
+    circleDataMap.clear();
+    circlePolyDataMap.clear();
+    circleFilterMap.clear();
+    circlePolyDataMapperMap.clear();
+    circlePolyDataActorMap.clear();
+
+    for (auto it = squareDataMap.begin(); it != squareDataMap.end(); it++)
+      it->second->Reset();
+
+    squareVisAttributesMap.clear();
+    squareDataMap.clear();
+    squarePolyDataMap.clear();
+    squareFilterMap.clear();
+    squarePolyDataMapperMap.clear();
+    squarePolyDataActorMap.clear();
+
+    for (auto it = squareDataMap.begin(); it != squareDataMap.end(); it++)
+      it->second->Reset();
+
+    polyhedronVisAttributesMap.clear();
+    polyhedronPolyDataMap.clear();
+    polyhedronMapperMap.clear();
+    polyhedronActorMap.clear();
+
+  }
+
 protected:
   static G4int         fSceneIdCount;  // Counter for Vtk scene handlers.
+
+  // maps for polylines
+  std::map<std::size_t, const G4VisAttributes*>             polylineVisAttributesMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPoints>>         polylineDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkCellArray>>      polylineLineMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyData>>       polylinePolyDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyDataMapper>> polylinePolyDataMapperMap;
+  std::map<std::size_t, vtkSmartPointer<vtkActor>>          polylinePolyDataActorMap;
+
+  // maps for circles
+  std::map<std::size_t, const G4VisAttributes*>                circleVisAttributesMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPoints>>            circleDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyData>>          circlePolyDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkVertexGlyphFilter>> circleFilterMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyDataMapper>>    circlePolyDataMapperMap;
+  std::map<std::size_t, vtkSmartPointer<vtkActor>>             circlePolyDataActorMap;
+
+  // maps for squares
+  std::map<std::size_t, const G4VisAttributes*>                squareVisAttributesMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPoints>>            squareDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyData>>          squarePolyDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkVertexGlyphFilter>> squareFilterMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyDataMapper>>    squarePolyDataMapperMap;
+  std::map<std::size_t, vtkSmartPointer<vtkActor>>             squarePolyDataActorMap;
+
+  // map for polyhedra
+  std::map<std::size_t, const G4VisAttributes*>                polyhedronVisAttributesMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPoints>>            polyhedronDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkCellArray>>         polyhedronPolyMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyData>>          polyhedronPolyDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyDataMapper>>    polyhedronMapperMap;
+  std::map<std::size_t, vtkSmartPointer<vtkActor>>             polyhedronActorMap;
 
 private:
 #ifdef G4VTKDEBUG

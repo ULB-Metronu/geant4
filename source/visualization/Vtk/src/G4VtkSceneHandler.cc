@@ -43,6 +43,67 @@
 #include "G4Polyhedron.hh"
 #include "G4UnitsTable.hh"
 
+namespace std {
+  inline void hash_combine(std::size_t &seed) {}
+
+  template<typename T, typename... Rest>
+  inline void hash_combine(std::size_t &seed, const T &v, Rest... rest) {
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    std::hash_combine(seed, rest...);
+  }
+
+  template<>
+  struct hash<G4VisAttributes> {
+    std::size_t operator()(const G4VisAttributes &va) const {
+      using std::size_t;
+      using std::hash;
+
+      std::size_t h = 0;
+
+      std::hash_combine(h,va.IsVisible());
+      std::hash_combine(h,va.IsDaughtersInvisible());
+      std::hash_combine(h,va.GetColour().GetRed());
+      std::hash_combine(h,va.GetColour().GetGreen());
+      std::hash_combine(h,va.GetColour().GetBlue());
+      std::hash_combine(h,va.GetColour().GetAlpha());
+      std::hash_combine(h,va.GetLineStyle());
+
+      return h;
+    }
+  };
+
+  template<> struct hash<G4Polyhedron> {
+    std::size_t operator()(const G4Polyhedron &ph) const {
+      using std::size_t;
+      using std::hash;
+
+      G4bool notLastFace;
+      G4Point3D vertex[4];
+      G4int edgeFlag[4];
+      G4Normal3D normals[4];
+      G4int nEdges;
+
+      std::size_t h;
+
+      do {
+        notLastFace = ph.GetNextFacet(nEdges, vertex, edgeFlag, normals);
+
+        for (int i = 0; i < nEdges; i++) {
+          std::size_t hx = std::hash<double>()(vertex[i].x());
+          std::size_t hy = std::hash<double>()(vertex[i].y());
+          std::size_t hz = std::hash<double>()(vertex[i].z());
+          std::hash_combine(h,hx);
+          std::hash_combine(h,hy);
+          std::hash_combine(h,hz);
+        }
+      } while (notLastFace);
+
+      return h;
+    }
+  };
+}
+
 G4int G4VtkSceneHandler::fSceneIdCount = 0;
 // Counter for XXX scene handlers.
 
@@ -83,71 +144,78 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) {
 
   // Get vis attributes - pick up defaults if none.
   const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(polyline.GetVisAttributes());
-  G4Color colour             = pVA->GetColour();
+  G4Color  colour            = pVA->GetColour();
   G4double opacity           = colour.GetAlpha();
   G4double lineWidth         = pVA->GetLineWidth();
 
 #ifdef G4VTKDEBUG
   G4cout << "=================================" << G4endl;
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called>           "  << " sizeType:" << sizeType << G4endl;
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called>    colour: " << colour.GetRed() << " " << colour.GetBlue() << " " << colour.GetGreen()  << G4endl;
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called>     alpha: " << colour.GetAlpha() << G4endl;
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called> lineWidth: " << lineWidth << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called>             vis hash: " << sizeType << " " << std::hash<G4VisAttributes>{}(*pVA) << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called>             sizeType: " << sizeType << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called>            isVisible: " << pVA->IsVisible() << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called> isDaughtersInvisible: " << pVA->IsDaughtersInvisible() << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called>               colour: " << colour.GetRed() << " " << colour.GetGreen() << " " << colour.GetBlue()  << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called>                alpha: " << colour.GetAlpha() << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyline& polyline) called>            lineWidth: " << lineWidth << G4endl;
 #endif
 
-  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+  if(sizeType == world) {
+    std::size_t hash = std::hash<G4VisAttributes>{}(*pVA);
+    if (polylineVisAttributesMap.find(hash) == polylineVisAttributesMap.end()) {
+      polylineVisAttributesMap.insert(std::pair<std::size_t, const G4VisAttributes *>(hash, pVA));
 
-  const size_t nLines = polyline.size();
+      vtkSmartPointer <vtkPoints> data = vtkSmartPointer<vtkPoints>::New();
+      vtkSmartPointer <vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
+      vtkSmartPointer <vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+      vtkSmartPointer <vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      vtkSmartPointer <vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 
-  for(size_t i=0; i < nLines; ++i) {
-    points->InsertNextPoint(polyline[i].x(),
-                            polyline[i].y(),
-                            polyline[i].z());
+      polyData->SetPoints(data);
+      polyData->SetLines(lines);
+      mapper->SetInputData(polyData);
+      actor->SetMapper(mapper);
+
+      // Setup actor and mapper
+      actor->GetProperty()->SetLineWidth(lineWidth);
+      actor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
+      actor->GetProperty()->SetOpacity(opacity);
+      actor->SetVisibility(true);
+      actor->GetProperty()->BackfaceCullingOff();
+      actor->GetProperty()->FrontfaceCullingOff();
+
+      G4VtkViewer *pVtkViewer = dynamic_cast<G4VtkViewer *>(fpViewer);
+      pVtkViewer->renderer->AddActor(actor);
+
+      polylineDataMap.insert(std::pair<std::size_t, vtkSmartPointer < vtkPoints>> (hash, data));
+      polylineLineMap.insert(std::pair<std::size_t, vtkSmartPointer < vtkCellArray>>(hash, lines));
+      polylinePolyDataMap.insert(std::pair<std::size_t, vtkSmartPointer < vtkPolyData>> (hash, polyData));
+      polylinePolyDataMapperMap.insert(std::pair<std::size_t, vtkSmartPointer < vtkPolyDataMapper>>(hash, mapper));
+      polylinePolyDataActorMap.insert(std::pair<std::size_t, vtkSmartPointer < vtkActor>>(hash, actor));
+    }
+
+    // Data data
+    const size_t nLines = polyline.size();
+
+    for (size_t i = 0; i < nLines; ++i) {
+      auto id = polylineDataMap[hash]->InsertNextPoint(polyline[i].x(),
+                                                       polyline[i].y(),
+                                                       polyline[i].z());
+      if (i < nLines - 1) {
+        vtkSmartPointer <vtkLine> line = vtkSmartPointer<vtkLine>::New();
+        line->GetPointIds()->SetId(0, id);
+        line->GetPointIds()->SetId(1, id + 1);
+        polylineLineMap[hash]->InsertNextCell(line);
+      }
+    }
   }
+  else if (sizeType == screen ) {
 
-  vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
-
-  for (unsigned int i = 0; i < nLines-1; i++)
-  {
-    vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
-    line->GetPointIds()->SetId(0, i);
-    line->GetPointIds()->SetId(1, i+1);
-    lines->InsertNextCell(line);
   }
-
-  // Create a polydata to store everything in
-  vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
-
-  // Add the points to the dataset
-  polyData->SetPoints(points);
-
-  // Add the lines to the dataset
-  polyData->SetLines(lines);
-
-  // Setup actor and mapper
-  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInputData(polyData);
-
-  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-  actor->SetMapper(mapper);
-
-  // Setup actor and mapper
-  actor->GetProperty()->SetLineWidth(lineWidth);
-  actor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
-  actor->GetProperty()->SetOpacity(opacity);
-  actor->SetVisibility(true);
-  actor->GetProperty()->BackfaceCullingOff();
-  actor->GetProperty()->FrontfaceCullingOff();
-
-  G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
-  pVtkViewer->renderer->AddActor(actor);
-
 }
 
 void G4VtkSceneHandler::AddPrimitive(const G4Text& text) {
 
   G4VSceneHandler::MarkerSizeType sizeType;
-  // GetMarkerSize(text,sizeType);
   if(fProcessing2D) sizeType = screen;
   else              sizeType = world;
 
@@ -169,17 +237,6 @@ void G4VtkSceneHandler::AddPrimitive(const G4Text& text) {
   G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called>   colour: " << colour.GetRed() << " " << colour.GetBlue() << " " << colour.GetGreen()  << G4endl;
   G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called>    alpha: " << colour.GetAlpha() << G4endl;
   G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called> position: " << x << " " << y << " " << z << G4endl;
-  // G4cout << text << G4endl;
-  switch (sizeType) {
-    default:
-    case screen:
-      // Draw in screen coordinates.
-      G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called> screen" << G4endl;
-      break;
-    case world:
-      G4cout << "G4VtkSeneHandler::AddPrimitive(const G4Text& text) called> world" << G4endl;
-      break;
-  }
 #endif
 
   switch (sizeType) {
@@ -216,13 +273,15 @@ void G4VtkSceneHandler::AddPrimitive(const G4Text& text) {
 void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
 
   MarkerSizeType sizeType;
-  G4double size = GetMarkerSize (circle, sizeType);
+  G4double size= GetMarkerSize(circle, sizeType);
+  if(fProcessing2D) sizeType = screen;
+  else              sizeType = world;
 
   // Get vis attributes - pick up defaults if none.
-  const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(circle.GetVisAttributes());
-  G4Color colour    = pVA->GetColour();
-  G4double opacity  = colour.GetAlpha();
-  G4bool  isVisible = pVA->IsVisible();
+  const G4VisAttributes *pVA = fpViewer->GetApplicableVisAttributes(circle.GetVisAttributes());
+  G4Color colour = pVA->GetColour();
+  G4double opacity = colour.GetAlpha();
+  G4bool isVisible = pVA->IsVisible();
 
 #ifdef G4VTKDEBUG
   G4cout << "=================================" << G4endl;
@@ -231,64 +290,50 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
   G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) called>    alpha: " << colour.GetAlpha() << G4endl;
 #endif
 
-  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-  points->InsertNextPoint(circle.GetPosition().x(),
-                          circle.GetPosition().y(),
-                          circle.GetPosition().z());
+  if (sizeType == world) {
+    std::size_t hash = std::hash<G4VisAttributes>{}(*pVA);
+    if (circleVisAttributesMap.find(hash) == circleVisAttributesMap.end()) {
+      circleVisAttributesMap.insert(std::pair<std::size_t, const G4VisAttributes *>(hash, pVA));
 
-  vtkNew<vtkPolyData> polydata;
-  polydata->SetPoints(points);
+      vtkSmartPointer<vtkPoints> data = vtkSmartPointer<vtkPoints>::New();
+      vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+      vtkSmartPointer<vtkVertexGlyphFilter> filter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
+      vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 
-  // Draw in world coordinates.
-  vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
-  polygonSource->SetNumberOfSides(15);
-  polygonSource->SetRadius(size);
+      polyData->SetPoints(data);
+      filter->SetInputData(polyData);
+      mapper->SetInputConnection(filter->GetOutputPort());
+      actor->SetMapper(mapper);
 
-  vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
-  sphereSource->SetRadius(size);
+      // Setup actor and mapper
+      actor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
+      actor->GetProperty()->SetOpacity(opacity);
+      actor->SetVisibility(true);
+      // actor->GetProperty()->SetRenderPointsAsSpheres(true);
+      actor->GetProperty()->SetPointSize(size*5);
 
-  auto position = fObjectTransformation*G4Translate3D(circle.GetPosition());
+      G4VtkViewer *pVtkViewer = dynamic_cast<G4VtkViewer *>(fpViewer);
+      pVtkViewer->renderer->AddActor(actor);
 
-  vtkSmartPointer<vtkGlyph3D> glyph3D = vtkSmartPointer<vtkGlyph3D>::New();
-  // glyph3D->SetSourceConnection(polygonSource->GetOutputPort());
-  glyph3D->SetSourceConnection(sphereSource->GetOutputPort());
-  glyph3D->SetInputData(polydata);
-  glyph3D->Update();
+      circleDataMap.insert(std::pair<std::size_t,vtkSmartPointer<vtkPoints>>(hash, data));
+      circlePolyDataMap.insert(std::pair<std::size_t, vtkSmartPointer < vtkPolyData>>(hash, polyData));
+      circleFilterMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkVertexGlyphFilter>>(hash, filter));
+      circlePolyDataMapperMap.insert(std::pair<std::size_t, vtkSmartPointer < vtkPolyDataMapper>>(hash, mapper));
+      circlePolyDataActorMap.insert(std::pair<std::size_t, vtkSmartPointer < vtkActor>>(hash, actor));
+    }
 
-  // Visualize
-  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInputConnection(glyph3D->GetOutputPort());;
+    // Data data point
+    circleDataMap[hash]->InsertNextPoint(circle.GetPosition().x(),
+                                         circle.GetPosition().y(),
+                                         circle.GetPosition().z());
+  }
+  else if (sizeType == screen) {
 
-  // Need the camera a little earlier
-  G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
-
-  //vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-  vtkSmartPointer<vtkFollower> actor = vtkSmartPointer<vtkFollower>::New();
-  actor->SetMapper(mapper);
-  //actor->SetCamera(pVtkViewer->camera);
-
-  actor->GetProperty()->SetColor(colour.GetRed(), colour.GetBlue(), colour.GetGreen());
-  actor->GetProperty()->SetOpacity(opacity);
-  actor->SetVisibility(isVisible);
-
-  pVtkViewer->renderer->AddActor(actor);
-
-  switch (sizeType) {
-    default:
-      break;
-    case screen:
-      break;
-    case world:
-      break;
   }
 }
 
 void G4VtkSceneHandler::AddPrimitive(const G4Square& square) {
-#ifdef G4VTKDEBUG
-  G4cout << "=================================" << G4endl;
-  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Square& square) called" << G4endl;
-  //PrintThings();
-#endif
 
   MarkerSizeType sizeType;
   G4double size = GetMarkerSize (square, sizeType);
@@ -296,6 +341,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Square& square) {
   // Get vis attributes - pick up defaults if none.
   const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(square.GetVisAttributes());
   G4Color colour    = pVA->GetColour();
+  G4double opacity  = colour.GetAlpha();
   G4bool  isVisible = pVA->IsVisible();
 
   // Draw in world coordinates.
@@ -303,37 +349,53 @@ void G4VtkSceneHandler::AddPrimitive(const G4Square& square) {
   polygonSource->SetNumberOfSides(4);
   polygonSource->SetRadius(size);
 
-  auto position = fObjectTransformation*G4Translate3D(square.GetPosition());
 
+#ifdef G4VTKDEBUG
+  G4cout << "=================================" << G4endl;
+  G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Square& square) called" << G4endl;
   G4cout << square.GetPosition().x() << " " << square.GetPosition().y() << " " << square.GetPosition().z() << G4endl;
-  polygonSource->SetCenter(square.GetPosition().x(),
-                           square.GetPosition().y(),
-                           square.GetPosition().z());
+  //PrintThings();
+#endif
 
-  // Visualize
-  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInputConnection(polygonSource->GetOutputPort());;
+  if (sizeType == world) {
+    std::size_t hash = std::hash<G4VisAttributes>{}(*pVA);
+    if (squareVisAttributesMap.find(hash) == squareVisAttributesMap.end()) {
+      squareVisAttributesMap.insert(std::pair<std::size_t, const G4VisAttributes *>(hash, pVA));
 
-  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-  actor->SetMapper(mapper);
+      vtkSmartPointer<vtkPoints> data = vtkSmartPointer<vtkPoints>::New();
+      vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+      vtkSmartPointer<vtkVertexGlyphFilter> filter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
+      vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 
-  actor->GetProperty()->SetColor(colour.GetRed(), colour.GetBlue(), colour.GetGreen());
-  actor->GetProperty()->SetOpacity(colour.GetAlpha());
-  actor->SetVisibility(isVisible);
+      polyData->SetPoints(data);
+      filter->SetInputData(polyData);
+      mapper->SetInputConnection(filter->GetOutputPort());
+      actor->SetMapper(mapper);
 
-  G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
-  pVtkViewer->renderer->AddActor(actor);
+      // Setup actor and mapper
+      actor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
+      actor->GetProperty()->SetOpacity(opacity);
+      actor->SetVisibility(true);
+      actor->GetProperty()->SetPointSize(size*5);
 
-  switch (sizeType) {
-    default:
-    case screen:
-      // Draw in screen coordinates.
-      G4cout << "screen";
-      break;
-    case world:
-      // Draw in world coordinates.
-      G4cout << "world";
-      break;
+      G4VtkViewer *pVtkViewer = dynamic_cast<G4VtkViewer *>(fpViewer);
+      pVtkViewer->renderer->AddActor(actor);
+
+      squareDataMap.insert(std::pair<std::size_t,vtkSmartPointer<vtkPoints>>(hash, data));
+      squarePolyDataMap.insert(std::pair<std::size_t, vtkSmartPointer < vtkPolyData>>(hash, polyData));
+      squareFilterMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkVertexGlyphFilter>>(hash, filter));
+      squarePolyDataMapperMap.insert(std::pair<std::size_t, vtkSmartPointer < vtkPolyDataMapper>>(hash, mapper));
+      squarePolyDataActorMap.insert(std::pair<std::size_t, vtkSmartPointer < vtkActor>>(hash, actor));
+    }
+
+    // Data data point
+    squareDataMap[hash]->InsertNextPoint(square.GetPosition().x(),
+                                         square.GetPosition().y(),
+                                         square.GetPosition().z());
+  }
+  else if (sizeType == screen) {
+
   }
 }
 
@@ -343,10 +405,10 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   if (polyhedron.GetNoFacets() == 0) return;
 
   // Get vis attributes - pick up defaults if none.
-  const G4VisAttributes* pVA           = fpViewer -> GetApplicableVisAttributes(polyhedron.GetVisAttributes());
-  G4Color colour                       = pVA->GetColour();
-  G4bool  isVisible                    = pVA->IsVisible();
-  G4double lineWidth                   = pVA->GetLineWidth();
+  const G4VisAttributes *pVA = fpViewer->GetApplicableVisAttributes(polyhedron.GetVisAttributes());
+  G4Color colour = pVA->GetColour();
+  G4bool isVisible = pVA->IsVisible();
+  G4double lineWidth = pVA->GetLineWidth();
   G4VisAttributes::LineStyle lineStyle = pVA->GetLineStyle();
 
   // G4double lineWidthScale = drawing_style.GetGlobalLineWidthScale();
@@ -365,9 +427,30 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
 
 #endif
 
-  vtkSmartPointer<vtkPolyData>  polydata  = vtkSmartPointer<vtkPolyData>::New();
-  vtkSmartPointer<vtkPoints>    points    = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkCellArray> polys     = vtkSmartPointer<vtkCellArray>::New();
+  std::size_t vhash = std::hash<G4VisAttributes>{}(*pVA);
+  std::size_t phash = std::hash<G4Polyhedron>{}(polyhedron);
+  std::size_t hash = vhash + 0x9e3779b9 + (phash << 6) + (phash >> 2);
+
+  G4cout << phash << G4endl;
+  if (polyhedronPolyDataMap.find(phash) == polyhedronPolyDataMap.end()) {
+
+    G4cout << "Create structures " << G4endl;
+    vtkSmartPointer <vtkPoints>         points = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer <vtkCellArray>       polys = vtkSmartPointer<vtkCellArray>::New();
+    vtkSmartPointer <vtkPolyData>     polydata = vtkSmartPointer<vtkPolyData>::New();
+    vtkSmartPointer <vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+
+    polydata->SetPoints(points);
+    polydata->SetPolys(polys);
+    mapper->SetInputData(polydata);
+
+    polyhedronDataMap.insert(std::pair<std::size_t,vtkSmartPointer<vtkPoints>>(phash, points));
+    polyhedronPolyMap.insert(std::pair<std::size_t,vtkSmartPointer<vtkCellArray>>(phash, polys));
+    polyhedronPolyDataMap.insert(std::pair<std::size_t,vtkSmartPointer<vtkPolyData>>(phash, polydata));
+    polyhedronMapperMap.insert(std::pair<std::size_t,vtkSmartPointer<vtkPolyDataMapper>>(phash, mapper));
+  }
+
+  G4cout << "Convert polyhedron " << G4endl;
 
   G4bool notLastFace;
   int    iVert  = 0;
@@ -381,54 +464,38 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
     vtkSmartPointer<vtkIdList> poly = vtkSmartPointer<vtkIdList>::New();
     // loop over vertices
     for(int i=0; i < nEdges; i++) {
-      points->InsertNextPoint(vertex[i].x(), vertex[i].y(), vertex[i].z());
+      polyhedronDataMap[phash]->InsertNextPoint(vertex[i].x(), vertex[i].y(), vertex[i].z());
       poly->InsertNextId(iVert);
       iVert++;
     }
-    polys->InsertNextCell(poly);
+    polyhedronPolyMap[phash]->InsertNextCell(poly);
 
   } while (notLastFace);
 
-  polydata->SetPoints(points);
-  polydata->SetPolys(polys);
 
-  // vtkSmartPointer<vtkFeatureEdges> featureEdges = vtkSmartPointer<vtkFeatureEdges>::New();
-  // featureEdges->SetInputData(polydata);
-  // featureEdges->SetColoring(true);
-  // featureEdges->BoundaryEdgesOff();
-  // featureEdges->NonManifoldEdgesOff();
-  // featureEdges->ManifoldEdgesOff();
-  // featureEdges->FeatureEdgesOn();
-  // featureEdges->SetFeatureAngle(1);
-  // featureEdges->Update();
+  G4cout << "Build actors" << G4endl;
 
-  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInputData(polydata);
-  // mapper->SetInputConnection(featureEdges->GetOutputPort());
-  // mapper->SetScalarModeToUseCellData();
+  vtkSmartPointer <vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkSmartPointer <vtkActor>         actor = vtkSmartPointer<vtkActor>::New();
+  transform->SetElement(0, 0, fObjectTransformation.xx());
+  transform->SetElement(0, 1, fObjectTransformation.xy());
+  transform->SetElement(0, 2, fObjectTransformation.xz());
 
-  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-  actor->SetMapper(mapper);
+  transform->SetElement(1, 0, fObjectTransformation.yx());
+  transform->SetElement(1, 1, fObjectTransformation.yy());
+  transform->SetElement(1, 2, fObjectTransformation.yz());
 
-  vtkSmartPointer<vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
-  transform->SetElement(0,0,fObjectTransformation.xx());
-  transform->SetElement(0,1,fObjectTransformation.xy());
-  transform->SetElement(0,2,fObjectTransformation.xz());
+  transform->SetElement(2, 0, fObjectTransformation.zx());
+  transform->SetElement(2, 1, fObjectTransformation.zy());
+  transform->SetElement(2, 2, fObjectTransformation.zz());
 
-  transform->SetElement(1,0,fObjectTransformation.yx());
-  transform->SetElement(1,1,fObjectTransformation.yy());
-  transform->SetElement(1,2,fObjectTransformation.yz());
-
-  transform->SetElement(2,0,fObjectTransformation.zx());
-  transform->SetElement(2,1,fObjectTransformation.zy());
-  transform->SetElement(2,2,fObjectTransformation.zz());
-
-  transform->SetElement(0,3,fObjectTransformation.dx());
-  transform->SetElement(1,3,fObjectTransformation.dy());
-  transform->SetElement(2,3,fObjectTransformation.dz());
-  transform->SetElement(3,3,1.);
+  transform->SetElement(0, 3, fObjectTransformation.dx());
+  transform->SetElement(1, 3, fObjectTransformation.dy());
+  transform->SetElement(2, 3, fObjectTransformation.dz());
+  transform->SetElement(3, 3, 1.);
 
   actor->SetUserMatrix(transform);
+  actor->SetMapper(polyhedronMapperMap[phash]);
 
   actor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
   actor->GetProperty()->SetOpacity(colour.GetAlpha());
@@ -437,21 +504,26 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
 
   // Initial action depending on drawing style.
   switch (drawing_style) {
-  case (G4ViewParameters::hsr): {
-    actor->GetProperty()->SetRepresentationToSurface();
-    break;
-  }
-  case (G4ViewParameters::hlr): {
-    actor->GetProperty()->SetRepresentationToSurface();
-    break;
-  }
-  case (G4ViewParameters::wireframe): {
-    actor->GetProperty()->SetRepresentationToWireframe();
-    break;
-  }
-  default: {break;}
+    case (G4ViewParameters::hsr): {
+      actor->GetProperty()->SetRepresentationToSurface();
+      break;
+    }
+    case (G4ViewParameters::hlr): {
+      actor->GetProperty()->SetRepresentationToSurface();
+      break;
+    }
+    case (G4ViewParameters::wireframe): {
+      actor->GetProperty()->SetRepresentationToWireframe();
+      break;
+    }
+    default: {
+      break;
+    }
   }
 
-  G4VtkViewer* pVtkViewer = dynamic_cast<G4VtkViewer*>(fpViewer);
+  G4cout << "Add to viewer " << G4endl;
+  G4VtkViewer *pVtkViewer = dynamic_cast<G4VtkViewer *>(fpViewer);
   pVtkViewer->renderer->AddActor(actor);
+
+  polyhedronActorMap.insert(std::pair<std::size_t, vtkSmartPointer <vtkActor>>(hash, actor));
 }

@@ -45,9 +45,10 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderWindow.h"
 #include "vtkInteractorStyleTrackballCamera.h"
+#include "vtkInteractorStyleTerrain.h"
 #pragma GCC diagnostic pop
 
-VTK_MODULE_INIT(vtkRenderingOpenGL2)
+// VTK_MODULE_INIT(vtkRenderingOpenGL2)
 VTK_MODULE_INIT(vtkRenderingFreeType)
 
 
