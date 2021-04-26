@@ -61,6 +61,11 @@
 #include "vtkGlyph3D.h"
 #include "vtkVertexGlyphFilter.h"
 #include "vtkMatrix4x4.h"
+#include "vtkDoubleArray.h"
+#include "vtkPointData.h"
+#include "vtkTriangleFilter.h"
+#include "vtkTensorGlyph.h"
+
 #pragma GCC diagnostic pop
 
 class G4VtkSceneHandler: public G4VSceneHandler {
@@ -108,6 +113,23 @@ public:
       it->second->Modified();
     }
 
+    for(auto it = instancePositionMap.begin(); it != instancePositionMap.end(); it++) {
+      it->second->Modified();
+    }
+
+    for(auto it = instanceRotationMap.begin(); it != instanceRotationMap.end(); it++) {
+      it->second->Modified();
+    }
+
+    for(auto it = instanceActorMap.begin(); it != instanceActorMap.end(); it++) {
+      it->second->Modified();
+    }
+
+    for(auto it = tgMap.begin(); it != tgMap.end(); it++) {
+      it->second->Update();
+    }
+
+
     G4cout << "G4VtkSceneHandler::Modified()    polyline styles: " << polylineVisAttributesMap.size() << G4endl;
     for (auto it = polylineLineMap.begin(); it != polylineLineMap.end(); it++)
       G4cout << "G4VtkSceneHandler::Modified()   polyline segments: " << it->second->GetNumberOfCells() << G4endl;
@@ -126,7 +148,7 @@ public:
       G4cout << "G4VtkSceneHandler::Modified()  polyhedronPolyData: " << it->second->GetPoints()->GetNumberOfPoints() << " " << it->second->GetPolys()->GetNumberOfCells() << " " << polyhedronPolyDataCountMap[it->first] <<G4endl;
     }
 
-    G4cout << "G4VtkSceneHandler::Modified()    placed polyhedra: " << polyhedronActorVector.size() << G4endl;
+   // G4cout << "G4VtkSceneHandler::Modified()    placed polyhedra: " << polyhedronActorVector.size() << G4endl;
 
 
   }
@@ -166,8 +188,9 @@ public:
 
     polyhedronVisAttributesMap.clear();
     polyhedronPolyDataMap.clear();
-    polyhedronMapperMap.clear();
-    polyhedronActorVector.clear();
+
+    // polyhedronMapperMap.clear();
+    // polyhedronActorVector.clear();
 
   }
 
@@ -204,8 +227,14 @@ protected:
   std::map<std::size_t, vtkSmartPointer<vtkCellArray>>         polyhedronPolyMap;
   std::map<std::size_t, vtkSmartPointer<vtkPolyData>>          polyhedronPolyDataMap;
   std::map<std::size_t, std::size_t>                           polyhedronPolyDataCountMap;
-  std::map<std::size_t, vtkSmartPointer<vtkPolyDataMapper>>    polyhedronMapperMap;
-  std::vector<vtkSmartPointer<vtkActor>>                       polyhedronActorVector;
+
+  //std::map<std::size_t, vtkSmartPointer<vtkPolyDataMapper>>    polyhedronMapperMap;
+  //std::map<std::size_t, vtkSmartPointer<vtkActor>>             polyhedronActorMap;
+
+  std::map<std::size_t, vtkSmartPointer<vtkPoints>>            instancePositionMap;
+  std::map<std::size_t, vtkSmartPointer<vtkDoubleArray>>       instanceRotationMap;
+  std::map<std::size_t, vtkSmartPointer<vtkActor>>             instanceActorMap;
+  std::map<std::size_t, vtkSmartPointer<vtkTensorGlyph>>       tgMap;
 
 private:
 #ifdef G4VTKDEBUG
