@@ -38,6 +38,7 @@
 #include "G4VSceneHandler.hh"
 
 #include <map>
+#include <vector>
 
 #include "G4VtkViewer.hh"
 #pragma GCC diagnostic push
@@ -107,20 +108,25 @@ public:
       it->second->Modified();
     }
 
-    G4cout << "G4VtkSceneHandler::Modified()   polyline styles: " << polylineVisAttributesMap.size() << G4endl;
+    G4cout << "G4VtkSceneHandler::Modified()    polyline styles: " << polylineVisAttributesMap.size() << G4endl;
     for (auto it = polylineLineMap.begin(); it != polylineLineMap.end(); it++)
-      G4cout << "G4VtkSceneHandler::Modified() polyline segments: " << it->second->GetNumberOfCells() << G4endl;
+      G4cout << "G4VtkSceneHandler::Modified()   polyline segments: " << it->second->GetNumberOfCells() << G4endl;
 
-    G4cout << "G4VtkSceneHandler::Modified()     circle styles: " << circleVisAttributesMap.size() << G4endl;
+    G4cout << "G4VtkSceneHandler::Modified()       circle styles: " << circleVisAttributesMap.size() << G4endl;
     for (auto it = circleDataMap.begin(); it != circleDataMap.end(); it++)
-      G4cout << "G4VtkSceneHandler::Modified()           circles: " << it->second->GetNumberOfPoints() << G4endl;
+      G4cout << "G4VtkSceneHandler::Modified()             circles: " << it->second->GetNumberOfPoints() << G4endl;
 
-    G4cout << "G4VtkSceneHandler::Modified()     square styles: " << squareVisAttributesMap.size() << G4endl;
+    G4cout << "G4VtkSceneHandler::Modified()      square styles: " << squareVisAttributesMap.size() << G4endl;
     for (auto it = squareDataMap.begin(); it != squareDataMap.end(); it++)
       G4cout << "G4VtkSceneHanler::Modified()           squares: " << it->second->GetNumberOfPoints() << G4endl;
 
-    G4cout << "G4VtkSceneHandler::Modified()  unique polyhedra: " << polyhedronDataMap.size() << G4endl;
-    G4cout << "G4VtkSceneHandler::Modified()  placed polyhedra: " << polyhedronActorMap.size() << G4endl;
+    G4cout << "G4VtkSceneHandler::Modified()   unique polyhedra: " << polyhedronDataMap.size() << G4endl;
+
+    for (auto it = polyhedronPolyDataMap.begin(); it != polyhedronPolyDataMap.end(); it++) {
+      G4cout << "G4VtkSceneHandler::Modified()  polyhedronPolyData: " << it->second->GetPoints()->GetNumberOfPoints() << " " << it->second->GetPolys()->GetNumberOfCells() << " " << polyhedronPolyDataCountMap[it->first] <<G4endl;
+    }
+
+    G4cout << "G4VtkSceneHandler::Modified()    placed polyhedra: " << polyhedronActorVector.size() << G4endl;
 
 
   }
@@ -161,7 +167,7 @@ public:
     polyhedronVisAttributesMap.clear();
     polyhedronPolyDataMap.clear();
     polyhedronMapperMap.clear();
-    polyhedronActorMap.clear();
+    polyhedronActorVector.clear();
 
   }
 
@@ -197,8 +203,9 @@ protected:
   std::map<std::size_t, vtkSmartPointer<vtkPoints>>            polyhedronDataMap;
   std::map<std::size_t, vtkSmartPointer<vtkCellArray>>         polyhedronPolyMap;
   std::map<std::size_t, vtkSmartPointer<vtkPolyData>>          polyhedronPolyDataMap;
+  std::map<std::size_t, std::size_t>                           polyhedronPolyDataCountMap;
   std::map<std::size_t, vtkSmartPointer<vtkPolyDataMapper>>    polyhedronMapperMap;
-  std::map<std::size_t, vtkSmartPointer<vtkActor>>             polyhedronActorMap;
+  std::vector<vtkSmartPointer<vtkActor>>                       polyhedronActorVector;
 
 private:
 #ifdef G4VTKDEBUG

@@ -84,7 +84,7 @@ namespace std {
       G4Normal3D normals[4];
       G4int nEdges;
 
-      std::size_t h;
+      std::size_t h = 0;
 
       do {
         notLastFace = ph.GetNextFacet(nEdges, vertex, edgeFlag, normals);
@@ -310,7 +310,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
       actor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
       actor->GetProperty()->SetOpacity(opacity);
       actor->SetVisibility(true);
-      // actor->GetProperty()->SetRenderPointsAsSpheres(true);
+      actor->GetProperty()->SetRenderPointsAsSpheres(true);
       actor->GetProperty()->SetPointSize(size*5);
 
       G4VtkViewer *pVtkViewer = dynamic_cast<G4VtkViewer *>(fpViewer);
@@ -362,11 +362,11 @@ void G4VtkSceneHandler::AddPrimitive(const G4Square& square) {
     if (squareVisAttributesMap.find(hash) == squareVisAttributesMap.end()) {
       squareVisAttributesMap.insert(std::pair<std::size_t, const G4VisAttributes *>(hash, pVA));
 
-      vtkSmartPointer<vtkPoints> data = vtkSmartPointer<vtkPoints>::New();
-      vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+      vtkSmartPointer<vtkPoints>              data = vtkSmartPointer<vtkPoints>::New();
+      vtkSmartPointer<vtkPolyData>        polyData = vtkSmartPointer<vtkPolyData>::New();
       vtkSmartPointer<vtkVertexGlyphFilter> filter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
-      vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-      vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+      vtkSmartPointer<vtkPolyDataMapper>    mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      vtkSmartPointer<vtkActor>              actor = vtkSmartPointer<vtkActor>::New();
 
       polyData->SetPoints(data);
       filter->SetInputData(polyData);
@@ -431,14 +431,32 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   std::size_t phash = std::hash<G4Polyhedron>{}(polyhedron);
   std::size_t hash = vhash + 0x9e3779b9 + (phash << 6) + (phash >> 2);
 
-  G4cout << phash << G4endl;
   if (polyhedronPolyDataMap.find(phash) == polyhedronPolyDataMap.end()) {
 
-    G4cout << "Create structures " << G4endl;
     vtkSmartPointer <vtkPoints>         points = vtkSmartPointer<vtkPoints>::New();
     vtkSmartPointer <vtkCellArray>       polys = vtkSmartPointer<vtkCellArray>::New();
     vtkSmartPointer <vtkPolyData>     polydata = vtkSmartPointer<vtkPolyData>::New();
     vtkSmartPointer <vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+
+    G4bool notLastFace;
+    int    iVert  = 0;
+    do {
+      G4Point3D  vertex[4];
+      G4int      edgeFlag[4];
+      G4Normal3D normals[4];
+      G4int      nEdges;
+      notLastFace = polyhedron.GetNextFacet(nEdges, vertex, edgeFlag, normals);
+
+      vtkSmartPointer<vtkIdList> poly = vtkSmartPointer<vtkIdList>::New();
+      // loop over vertices
+      for(int i=0; i < nEdges; i++) {
+        points->InsertNextPoint(vertex[i].x(), vertex[i].y(), vertex[i].z());
+        poly->InsertNextId(iVert);
+        iVert++;
+      }
+      polys->InsertNextCell(poly);
+
+    } while (notLastFace);
 
     polydata->SetPoints(points);
     polydata->SetPolys(polys);
@@ -448,32 +466,10 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
     polyhedronPolyMap.insert(std::pair<std::size_t,vtkSmartPointer<vtkCellArray>>(phash, polys));
     polyhedronPolyDataMap.insert(std::pair<std::size_t,vtkSmartPointer<vtkPolyData>>(phash, polydata));
     polyhedronMapperMap.insert(std::pair<std::size_t,vtkSmartPointer<vtkPolyDataMapper>>(phash, mapper));
+    polyhedronPolyDataCountMap.insert(std::pair<std::size_t,std::size_t>(phash, 0));
   }
 
-  G4cout << "Convert polyhedron " << G4endl;
-
-  G4bool notLastFace;
-  int    iVert  = 0;
-  do {
-    G4Point3D  vertex[4];
-    G4int      edgeFlag[4];
-    G4Normal3D normals[4];
-    G4int      nEdges;
-    notLastFace = polyhedron.GetNextFacet(nEdges, vertex, edgeFlag, normals);
-
-    vtkSmartPointer<vtkIdList> poly = vtkSmartPointer<vtkIdList>::New();
-    // loop over vertices
-    for(int i=0; i < nEdges; i++) {
-      polyhedronDataMap[phash]->InsertNextPoint(vertex[i].x(), vertex[i].y(), vertex[i].z());
-      poly->InsertNextId(iVert);
-      iVert++;
-    }
-    polyhedronPolyMap[phash]->InsertNextCell(poly);
-
-  } while (notLastFace);
-
-
-  G4cout << "Build actors" << G4endl;
+  polyhedronPolyDataCountMap[phash]++;
 
   vtkSmartPointer <vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
   vtkSmartPointer <vtkActor>         actor = vtkSmartPointer<vtkActor>::New();
@@ -500,6 +496,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   actor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
   actor->GetProperty()->SetOpacity(colour.GetAlpha());
   actor->GetProperty()->SetLineWidth(lineWidth);
+  actor->GetProperty()->SetBackfaceCulling(false);
   actor->SetVisibility(isVisible);
 
   // Initial action depending on drawing style.
@@ -521,9 +518,8 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
     }
   }
 
-  G4cout << "Add to viewer " << G4endl;
   G4VtkViewer *pVtkViewer = dynamic_cast<G4VtkViewer *>(fpViewer);
   pVtkViewer->renderer->AddActor(actor);
 
-  polyhedronActorMap.insert(std::pair<std::size_t, vtkSmartPointer <vtkActor>>(hash, actor));
+  polyhedronActorVector.push_back(actor);
 }
