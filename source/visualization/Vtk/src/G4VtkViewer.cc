@@ -38,6 +38,8 @@
 G4VtkViewer::G4VtkViewer (G4VSceneHandler& sceneHandler, const G4String& name) :
 G4VViewer(sceneHandler, sceneHandler.IncrementViewCount(), name) {
 
+  vtkObject::GlobalWarningDisplayOff();
+
   G4cout << "G4VtkViewer::G4VtkViewer" << G4endl;
 
   G4cout << "G4VtkViewer::G4VtkViewer> " << fVP.GetWindowSizeHintX() << " " << fVP.GetWindowSizeHintY() << G4endl;
