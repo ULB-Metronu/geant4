@@ -33,12 +33,13 @@
 #ifndef G4VTKVIEWER_HH
 #define G4VTKVIEWER_HH
 
-#define G4VTKDEBUG  // Comment this out to suppress debug code.
+// #define G4VTKDEBUG  // Comment this out to suppress debug code.
 
 #include "G4VViewer.hh"
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wextra-semi"
+#include "vtkObject.h"
 #include "vtkAutoInit.h"
 #include "vtkCamera.h"
 #include "vtkRenderer.h"
