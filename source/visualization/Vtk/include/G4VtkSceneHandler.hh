@@ -33,7 +33,6 @@
 #ifndef G4VTKSCENEHANDLER_HH
 #define G4VTKSCENEHANDLER_HH
 
-// #define G4VTKDEBUG  // Comment this out to suppress debug code.
 
 #include "G4VSceneHandler.hh"
 
@@ -88,14 +87,18 @@ public:
   // hiding of base class methods.
   void AddPrimitive(const G4Polymarker& polymarker)
   {
+#ifdef G4VTKDEBUG
     G4cout << "=================================" << G4endl;
     G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polymarker& polymarker) called." << G4endl;
+#endif
     G4VSceneHandler::AddPrimitive (polymarker);
   }
   void AddPrimitive(const G4Scale& scale)
   {
+#ifdef G4VTKDEBUG
     G4cout << "=================================" << G4endl;
     G4cout << "G4VtkSceneHandler::AddScale(const G4Scale& scale) called." << G4endl;
+#endif
     G4VSceneHandler::AddPrimitive(scale);
   }
 
