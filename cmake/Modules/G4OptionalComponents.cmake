@@ -435,33 +435,6 @@ if(GEANT4_USE_VTK)
   find_package(VTK REQUIRED)
 
   # check version
-  if(${VTK_MAJOR_VERSION} MATCHES "9" )
-    find_package(VTK 9 REQUIRED COMPONENTS
-            CommonColor
-            CommonCore
-            FiltersSources
-            FiltersGeneral
-            InteractionStyle
-            RenderingCore
-            RenderingFreeType
-            RenderingGL2PSOpenGL2
-            RenderingOpenGL2
-            CMAKE_FIND_ROOT_PATH_BOTH)
-  else()
-    find_package(VTK 8 REQUIRED  COMPONENTS
-            vtkCommonColor
-            vtkCommonCore
-            vtkFiltersSources
-            vtkInteractionStyle
-            vtkRenderingContextOpenGL2
-            vtkRenderingCore
-            vtkRenderingFreeType
-            vtkRenderingGL2PSOpenGL2
-            vtkRenderingOpenGL2
-            CMAKE_FIND_ROOT_PATH_BOTH)
-    include(${VTK_USE_FILE})
-  endif()
-
   if(${VTK_VERSION} MATCHES "9")
     find_package(VTK 9 REQUIRED COMPONENTS
                   CommonColor
@@ -475,11 +448,6 @@ if(GEANT4_USE_VTK)
                   RenderingOpenGL2
                   CMAKE_FIND_ROOT_PATH_BOTH)
     MESSAGE("${VTK_INSTALL_PREFIX}")
-
-    foreach(lib ${VTK_LIBRARIES})
-      MESSAGE(${lib})
-    endforeach()
-
   else()
     find_package(VTK 8 REQUIRED  COMPONENTS
                   vtkCommonColor
