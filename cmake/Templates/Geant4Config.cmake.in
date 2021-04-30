@@ -575,6 +575,7 @@ if(Geant4_vtk_FOUND)
   if(("vtk" IN_LIST Geant4_FIND_COMPONENTS))
     list(APPEND Geant4_DEFINITIONS -DG4VIS_USE_VTK)
   endif()
+  find_package(VTK @VTK_VERSION_MAJOR@ REQUIRED NO_DEFAULT_PATH PATHS @VTK_DIR@)
   set(_geant4_use_vtk_library ON)
 endif()
 

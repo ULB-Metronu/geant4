@@ -431,39 +431,93 @@ endif()
 option(GEANT4_USE_VTK "Build Geant4 with VTK visualisation" OFF)
 mark_as_advanced(GEANT4_USE_VTK)
 if(GEANT4_USE_VTK)
-  find_package(VTK COMPONENTS
-          vtkCommonColor
-          vtkCommonCore
-          vtkFiltersSources
-          vtkInteractionStyle
-          vtkRenderingContextOpenGL2
-          vtkRenderingCore
-          vtkRenderingFreeType
-          vtkRenderingGL2PSOpenGL2
-          vtkRenderingOpenGL2
-          CMAKE_FIND_ROOT_PATH_BOTH)
-#          QUIET)
 
-  GEANT4_ADD_FEATURE(GEANT4_USE_VTK "Using VTK visualiser (EXPERIMENTAL)")
-  include(${VTK_USE_FILE})
-endif()
+  find_package(VTK REQUIRED)
 
-#MESSAGE(STATUS ${VTK_DIR})
-#MESSAGE(STATUS ${VTK_INSTALL_PREFIX})
-#MESSAGE(STATUS ${VTK_MAJOR_VERSION})
-#MESSAGE(STATUS ${VTK_MINOR_VERSION})
-#MESSAGE(STATUS ${VTK_LIBRARIES})
-
-# TODO made full path to libraries... feel like it should not
-# be like this
-foreach(lib ${VTK_LIBRARIES})
-  if(${lib} MATCHES "vtk*")
-    set(libNew ${VTK_INSTALL_PREFIX}/lib/lib${lib}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.dylib)
+  # check version
+  if(${VTK_MAJOR_VERSION} MATCHES "9" )
+    find_package(VTK 9 REQUIRED COMPONENTS
+            CommonColor
+            CommonCore
+            FiltersSources
+            FiltersGeneral
+            InteractionStyle
+            RenderingCore
+            RenderingFreeType
+            RenderingGL2PSOpenGL2
+            RenderingOpenGL2
+            CMAKE_FIND_ROOT_PATH_BOTH)
   else()
-    set(libNew ${lib})
+    find_package(VTK 8 REQUIRED  COMPONENTS
+            vtkCommonColor
+            vtkCommonCore
+            vtkFiltersSources
+            vtkInteractionStyle
+            vtkRenderingContextOpenGL2
+            vtkRenderingCore
+            vtkRenderingFreeType
+            vtkRenderingGL2PSOpenGL2
+            vtkRenderingOpenGL2
+            CMAKE_FIND_ROOT_PATH_BOTH)
+    include(${VTK_USE_FILE})
   endif()
 
-  list(APPEND VTK_LIBRARIES_NEW ${libNew})
-endforeach()
+  if(${VTK_VERSION} MATCHES "9")
+    find_package(VTK 9 REQUIRED COMPONENTS
+                  CommonColor
+                  CommonCore
+                  FiltersSources
+                  FiltersGeneral
+                  InteractionStyle
+                  RenderingCore
+                  RenderingFreeType
+                  RenderingGL2PSOpenGL2
+                  RenderingOpenGL2
+                  CMAKE_FIND_ROOT_PATH_BOTH)
+    MESSAGE("${VTK_INSTALL_PREFIX}")
 
-set(VTK_LIBRARIES ${VTK_LIBRARIES_NEW})
+    foreach(lib ${VTK_LIBRARIES})
+      MESSAGE(${lib})
+    endforeach()
+
+  else()
+    find_package(VTK 8 REQUIRED  COMPONENTS
+                  vtkCommonColor
+                  vtkCommonCore
+                  vtkFiltersSources
+                  vtkInteractionStyle
+                  vtkRenderingContextOpenGL2
+                  vtkRenderingCore
+                  vtkRenderingFreeType
+                  vtkRenderingGL2PSOpenGL2
+                  vtkRenderingOpenGL2
+                  CMAKE_FIND_ROOT_PATH_BOTH)
+    include(${VTK_USE_FILE})
+
+    MESSAGE(${VTK_INSTALL_PREFIX})
+
+    foreach(lib ${VTK_LIBRARIES})
+      if(${lib} MATCHES "vtk*")
+        set(libNew ${VTK_INSTALL_PREFIX}/lib/lib${lib}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.dylib)
+      else()
+        set(libNew ${lib})
+      endif()
+
+      list(APPEND VTK_LIBRARIES_NEW ${libNew})
+      MESSAGE(${lib})
+      MESSAGE(${libNew})
+    endforeach()
+
+    set(VTK_LIBRARIES ${VTK_LIBRARIES_NEW})
+  endif()
+
+  GEANT4_ADD_FEATURE(GEANT4_USE_VTK "Using VTK visualiser (EXPERIMENTAL)")
+endif()
+
+MESSAGE(STATUS ${VTK_DIR})
+MESSAGE(STATUS ${VTK_INSTALL_PREFIX})
+MESSAGE(STATUS ${VTK_MAJOR_VERSION})
+MESSAGE(STATUS ${VTK_MINOR_VERSION})
+# MESSAGE(STATUS ${VTK_LIBRARIES})
+
+
