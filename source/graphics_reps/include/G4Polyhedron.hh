@@ -142,6 +142,8 @@ typedef Kernel::Vector_3                                  Vector;
 typedef CGAL::Surface_mesh<Kernel::Point_3>               Surface_mesh;
 typedef CGAL::Aff_transformation_3<Kernel>                Aff_transformation_3;
 
+void cgalCheckMesh(Surface_mesh *sm);
+
 #pragma GCC diagnostic pop
 #endif
 
