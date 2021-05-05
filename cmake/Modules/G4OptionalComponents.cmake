@@ -177,7 +177,7 @@ option(GEANT4_USE_SYSTEM_PTL "Use system zlib library" OFF)
 if(GEANT4_USE_SYSTEM_PTL)
   find_package(PTL REQUIRED)
   # Backward compatibility for sources.cmake using the variable
-  set(PTL_LIBRARIES PTL::PTL)
+  set(PTL_LIBRARIES PTL::ptl)
   geant4_save_package_variables(PTL PTL_DIR)
 else()
   set(PTL_USE_TBB ${GEANT4_USE_TBB})
@@ -407,3 +407,63 @@ endif()
 
 GEANT4_ADD_FEATURE(GEANT4_USE_HDF5 "Building Geant4 analysis library with HDF5 support")
 
+#-----------------------------------------------------------------------
+# Optional support for CGAL
+#
+
+option(GEANT4_USE_CGAL "Build Geant4 with CGAL boolean" OFF)
+mark_as_advanced(GEANT4_USE_CGAL)
+
+if(GEANT4_USE_CGAL)
+  set(GEANT4_BUILD_CXXSTD "17" CACHE STRING "C++ Standard to compile against (11;14;17;20)" FORCE)
+  find_package(Boost REQUIRED)
+  find_package(CGAL REQUIRED)
+  find_package(GMP REQUIRED)
+  find_package(MPFR REQUIRED)
+
+  GEANT4_ADD_FEATURE(GEANT4_USE_CGAL "Using CGAL for boolean operations (EXPERIMENTAL)")
+
+else()
+  set(GEANT4_BUILD_CXXSTD "11" CACHE STRING "C++ Standard to compile against (11;14;17;20)" FORCE)
+endif()
+
+# TODO (add option for VTK)
+option(GEANT4_USE_VTK "Build Geant4 with VTK visualisation" OFF)
+mark_as_advanced(GEANT4_USE_VTK)
+if(GEANT4_USE_VTK)
+  find_package(VTK COMPONENTS
+          vtkCommonColor
+          vtkCommonCore
+          vtkFiltersSources
+          vtkInteractionStyle
+          vtkRenderingContextOpenGL2
+          vtkRenderingCore
+          vtkRenderingFreeType
+          vtkRenderingGL2PSOpenGL2
+          vtkRenderingOpenGL2
+          CMAKE_FIND_ROOT_PATH_BOTH)
+#          QUIET)
+
+  GEANT4_ADD_FEATURE(GEANT4_USE_VTK "Using VTK visualiser (EXPERIMENTAL)")
+  include(${VTK_USE_FILE})
+endif()
+
+#MESSAGE(STATUS ${VTK_DIR})
+#MESSAGE(STATUS ${VTK_INSTALL_PREFIX})
+#MESSAGE(STATUS ${VTK_MAJOR_VERSION})
+#MESSAGE(STATUS ${VTK_MINOR_VERSION})
+#MESSAGE(STATUS ${VTK_LIBRARIES})
+
+# TODO made full path to libraries... feel like it should not
+# be like this
+foreach(lib ${VTK_LIBRARIES})
+  if(${lib} MATCHES "vtk*")
+    set(libNew ${VTK_INSTALL_PREFIX}/lib/lib${lib}-${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.dylib)
+  else()
+    set(libNew ${lib})
+  endif()
+
+  list(APPEND VTK_LIBRARIES_NEW ${libNew})
+endforeach()
+
+set(VTK_LIBRARIES ${VTK_LIBRARIES_NEW})

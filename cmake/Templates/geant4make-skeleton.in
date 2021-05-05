@@ -131,6 +131,8 @@
 @GEANT4_TC_UNSET_COMMAND@  G4VIS_BUILD_RAYTRACERX_DRIVER
 @GEANT4_TC_UNSET_COMMAND@  G4VIS_USE_RAYTRACERX
 
+# - CGAL
+@GEANT4_TC_UNSET_COMMAND@  G4VIS_USE_CGAL
 
 #-----------------------------------------------------------------------
 # System description and standard install paths
@@ -275,6 +277,11 @@
 # X11 Raytracer 
 #
 @GEANT4_TC_G4VIS_USE_RAYTRACERX@
+
+#-----------------------------------------------------------------------
+# CGAL Booleans
+#
+@GEANT4_TC_G4VIS_USE_CGAL@
 
 #-----------------------------------------------------------------------
 @GEANT4_TC_ENDIF_SELFLOCATED@

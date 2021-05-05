@@ -6,6 +6,7 @@
 #
 # Define the Geant4 Module.
 #
+
 geant4_define_module(NAME G4graphics_reps
   HEADERS
     G4AttCheck.hh
@@ -87,6 +88,13 @@ geant4_define_module(NAME G4graphics_reps
     G4global
     G4intercoms
   LINK_LIBRARIES
+    ${GMP_LIBRARY}
+    ${MPFR_LIBRARY}
 )
 
 # List any source specific properties here
+geant4_module_include_directories(G4graphics_reps PUBLIC $<BUILD_INTERFACE:${CGAL_INCLUDE_DIRS}>)
+
+if(GEANT4_USE_CGAL)
+    geant4_module_compile_definitions(G4graphics_reps PUBLIC G4VIS_USE_CGAL)
+endif()

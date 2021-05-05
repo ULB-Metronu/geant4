@@ -1,0 +1,13 @@
+diff --git a/source/geometry/solids/specific/src/G4Voxelizer.cc b/source/geometry/solids/specific/src/G4Voxelizer.cc
+index ea71a0ea6..99cf137d5 100644
+--- a/source/geometry/solids/specific/src/G4Voxelizer.cc
++++ b/source/geometry/solids/specific/src/G4Voxelizer.cc
+@@ -159,7 +159,7 @@ void G4Voxelizer::BuildVoxelLimits(std::vector<G4VSolid*>& solids,
+       TransformLimits(min, max, transform);
+       fBoxes[i].hlen = (max - min) / 2;
+       transform.getDecomposition(scale,rot,transl); 
+-      fBoxes[i].pos = transl.getTranslation();
++      fBoxes[i].pos = (max + min) / 2.;
+     }
+     fTotalCandidates = fBoxes.size();
+   }

@@ -636,6 +636,14 @@ macro(_g4tc_configure_tc_variables SHELL_FAMILY SCRIPT_NAME)
   else()
     set(GEANT4_TC_G4VIS_USE_RAYTRACERX "# NOT BUILT WITH RAYTRACER(X11) SUPPORT")
   endif()
+
+  # - CGAL Booleans
+  if(GEANT4_USE_CGAL)
+    _g4tc_setenv_command(GEANT4_TC_G4VIS_USE_CGAL ${SHELL_FAMILY} G4VIS_USE_CGAL 1)
+  else()
+    set(GEANT4_TC_G4VIS_USE_CGAL "# NOT BUILT WITH CGAL SUPPORT")
+  endif()
+
 endmacro()
 
 

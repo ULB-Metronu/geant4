@@ -66,6 +66,60 @@ G4PolyhedronArbitrary::G4PolyhedronArbitrary (const G4int nVertices,
   nVertexCount = 0;
   nFacetCount  = 0;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+//
+#if (defined(G4VIS_USE_CGAL))
+G4PolyhedronArbitrary::G4PolyhedronArbitrary(Surface_mesh  *from)
+{
+  this->cgal_sf = from;
+
+  AllocateMemory(from->number_of_vertices(), from->number_of_faces());
+  nVertexCount = 0;
+  nFacetCount  = 0;
+
+  Surface_mesh::Point p;
+  int iVertex = 0;
+  for(Surface_mesh::Vertex_index vd : (*from).vertices()) {
+    p = from->point(vd);
+    G4Point3D v = G4Point3D(CGAL::to_double(p.x()),CGAL::to_double(p.y()),CGAL::to_double(p.z()));
+    this->AddVertex(v);
+    //std::cout << "vertex " << iVertex << std::endl;
+    iVertex++;
+  }
+
+  int iFace = 0;
+  for(Surface_mesh::Face_index fd : from->faces()) {
+    int iCount = 0;
+    int faceIndex[4];
+    for(Surface_mesh::Halfedge_index hd :  CGAL::halfedges_around_face((*from).halfedge(fd),*from)) {
+      faceIndex[iCount] = (int)(*from).source(hd)+1;
+      iCount++;
+    }
+
+    if(iCount == 3) {
+      //std::cout << faceIndex[0] << " " << faceIndex[1] << " " << faceIndex[2] << std::endl;
+
+      this->AddFacet(faceIndex[0], faceIndex[1], faceIndex[2]);
+    }
+    else if(iCount == 4) {
+      //std::cout << faceIndex[0] << " " << faceIndex[1] << " " << faceIndex[2] << " " << faceIndex[3] << std::endl;
+
+      this->AddFacet(faceIndex[0], faceIndex[1], faceIndex[2], faceIndex[3]);
+      //this->AddFacet(faceIndex[0], faceIndex[1], faceIndex[2]);
+      //this->AddFacet(faceIndex[0], faceIndex[2], faceIndex[3]);
+    }
+    else {
+      std::cout << "G4PolyhedronArbitrary::G4PolyhedronArbitrary (const Surface_mesh& from) > 4 vertices in face" << std::endl;
+    }
+    // std::cout << "face " << iFace << std::endl;
+    iFace++;
+  }
+
+  this->SetReferences();
+}
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 G4PolyhedronArbitrary::~G4PolyhedronArbitrary ()

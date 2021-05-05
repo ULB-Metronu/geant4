@@ -179,6 +179,8 @@ namespace G4ExpConsts
 inline G4double G4Exp(G4double initial_x)
 {
   G4double x  = initial_x;
+  if (x < -1e-12)
+    {return std::exp(x);}
   G4double px = G4ExpConsts::fpfloor(G4ExpConsts::LOG2E * x + 0.5);
 
   const int32_t n = int32_t(px);

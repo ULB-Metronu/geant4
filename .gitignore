@@ -124,6 +124,9 @@ local.properties
 # CDT- autotools
 .autotools
 
+# CLion
+.idea*
+
 # Java annotation processor (APT)
 .factorypath
 
