@@ -504,13 +504,13 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
     tensorGlyph->SetColorMode(0);
     tensorGlyph->Update();
 
-    vtkSmartPointer<vtkScalarsToColors> lut = vtkSmartPointer<vtkScalarsToColors>::New();
-    lut->SetVectorSize(3);
-    lut->SetVectorModeToRGBColors();
+    //vtkSmartPointer<vtkScalarsToColors> lut = vtkSmartPointer<vtkScalarsToColors>::New();
+    //lut->SetVectorSize(3);
+    //lut->SetVectorModeToRGBColors();
     instanceMapper->SetInputData(tensorGlyph->GetOutput());
-    instanceMapper->SetScalarModeToUsePointData();
-    instanceMapper->SetLookupTable(lut);
-    instanceMapper->SelectColorArray("colors");
+    //instanceMapper->SetScalarModeToUsePointData();
+    //instanceMapper->SetLookupTable(lut);
+    //instanceMapper->SelectColorArray("colors");
 
     instanceActor->SetMapper(instanceMapper);
     instanceActor->SetVisibility(true);
