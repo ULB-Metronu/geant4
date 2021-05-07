@@ -43,6 +43,10 @@
 #include "G4Polyhedron.hh"
 #include "G4UnitsTable.hh"
 
+#include "G4SystemOfUnits.hh"
+#include "G4Material.hh"
+#include "G4Box.hh"
+
 namespace std {
   inline void hash_combine(std::size_t &seed) {}
 
@@ -53,8 +57,7 @@ namespace std {
     std::hash_combine(seed, rest...);
   }
 
-  template<>
-  struct hash<G4VisAttributes> {
+  template<> struct hash<G4VisAttributes> {
     std::size_t operator()(const G4VisAttributes &va) const {
       using std::size_t;
       using std::hash;
@@ -67,7 +70,7 @@ namespace std {
       std::hash_combine(h,va.GetColour().GetGreen());
       std::hash_combine(h,va.GetColour().GetBlue());
       std::hash_combine(h,va.GetColour().GetAlpha());
-      std::hash_combine(h,va.GetLineStyle());
+      std::hash_combine(h,static_cast<int>(va.GetLineStyle()));
 
       return h;
     }
@@ -426,14 +429,22 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) called>  lineStyle:" << lineStyle << G4endl;
 #endif
 
-  std::size_t vhash = std::hash<G4VisAttributes>{}(*pVA);
+  //std::size_t vhash = std::hash<G4VisAttributes>{}(*pVA);
+
+  std::size_t vhash = 0;
+  std::hash_combine(vhash,static_cast<int>(drawing_style));
+  std::hash_combine(vhash,pVA->GetColor().GetAlpha());
+
   std::size_t phash = std::hash<G4Polyhedron>{}(polyhedron);
-  std::size_t hash = vhash + 0x9e3779b9 + (phash << 6) + (phash >> 2);
+
+  std::size_t hash = 0;
+  std::hash_combine(hash, phash);
+  std::hash_combine(hash, vhash);
 
   if (polyhedronPolyDataMap.find(phash) == polyhedronPolyDataMap.end()) {
 
-    vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-    vtkSmartPointer<vtkCellArray> polys = vtkSmartPointer<vtkCellArray>::New();
+    vtkSmartPointer<vtkPoints>     points = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkCellArray>   polys = vtkSmartPointer<vtkCellArray>::New();
     vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
 
     G4bool notLastFace;
@@ -464,45 +475,69 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
     polyhedronPolyDataMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkPolyData>>(phash, polydata));
     polyhedronPolyDataCountMap.insert(std::pair<std::size_t, std::size_t>(phash, 0));
 
-    vtkSmartPointer<vtkPoints> instancePosition = vtkSmartPointer<vtkPoints>::New();
-    vtkSmartPointer<vtkDoubleArray> instanceRotation = vtkSmartPointer<vtkDoubleArray>::New();
-    vtkSmartPointer<vtkPolyDataMapper> instanceMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    vtkSmartPointer<vtkActor> instanceActor = vtkSmartPointer<vtkActor>::New();
+    vtkSmartPointer<vtkPoints>          instancePosition = vtkSmartPointer<vtkPoints>::New();
+    vtkSmartPointer<vtkDoubleArray>     instanceRotation = vtkSmartPointer<vtkDoubleArray>::New();
+    vtkSmartPointer<vtkDoubleArray>       instanceColors = vtkSmartPointer<vtkDoubleArray>::New();
+    vtkSmartPointer<vtkPolyDataMapper>    instanceMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    vtkSmartPointer<vtkActor>              instanceActor = vtkSmartPointer<vtkActor>::New();
+    instanceColors->SetName("colors");
 
+    instanceColors->SetNumberOfComponents(3);
     instanceRotation->SetNumberOfComponents(9);
 
     vtkSmartPointer<vtkPolyData> instancePolyData = vtkSmartPointer<vtkPolyData>::New();
     instancePolyData->SetPoints(instancePosition);
     instancePolyData->GetPointData()->SetTensors(instanceRotation);
+    instancePolyData->GetPointData()->SetScalars(instanceColors);
 
     vtkSmartPointer<vtkTriangleFilter> filter = vtkSmartPointer<vtkTriangleFilter>::New();
     filter->AddInputData(polydata);
 
     vtkSmartPointer<vtkTensorGlyph> tensorGlyph = vtkSmartPointer<vtkTensorGlyph>::New();
     tensorGlyph->SetInputData(instancePolyData);
-    tensorGlyph->SetSourceConnection(filter->GetOutputPort());
-    tensorGlyph->ColorGlyphsOff();
+    tensorGlyph->SetSourceConnection(filter->GetOutputPort());;
+    tensorGlyph->ColorGlyphsOn();
+    tensorGlyph->ScalingOff();
     tensorGlyph->ThreeGlyphsOff();
     tensorGlyph->ExtractEigenvaluesOff();
+    tensorGlyph->SetColorModeToScalars();
+    tensorGlyph->SetColorMode(0);
     tensorGlyph->Update();
 
+    vtkSmartPointer<vtkScalarsToColors> lut = vtkSmartPointer<vtkScalarsToColors>::New();
+    lut->SetVectorSize(3);
+    lut->SetVectorModeToRGBColors();
     instanceMapper->SetInputData(tensorGlyph->GetOutput());
+    instanceMapper->SetScalarModeToUsePointData();
+    instanceMapper->SetLookupTable(lut);
+    instanceMapper->SelectColorArray("colors");
+
     instanceActor->SetMapper(instanceMapper);
-    instanceActor->GetProperty()->SetColor(1, 1, 1);
     instanceActor->SetVisibility(true);
-    instanceActor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
-    instanceActor->GetProperty()->SetOpacity(colour.GetAlpha());
+    // instanceActor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
+    // instanceActor->GetProperty()->SetOpacity(colour.GetAlpha());
 
     G4VtkViewer *pVtkViewer = dynamic_cast<G4VtkViewer *>(fpViewer);
     pVtkViewer->renderer->AddActor(instanceActor);
 
     instancePositionMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkPoints>>(phash, instancePosition));
     instanceRotationMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkDoubleArray>>(phash, instanceRotation));
+    instanceColoursMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkDoubleArray>>(phash, instanceColors));
+    instancePolyDataMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkPolyData>>(phash,instancePolyData));
     instanceActorMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkActor>>(phash, instanceActor));
+
     tgMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkTensorGlyph>>(phash, tensorGlyph));
   }
 
   polyhedronPolyDataCountMap[phash]++;
+
+  double red   = colour.GetRed();
+  double green = colour.GetGreen();
+  double blue  = colour.GetBlue();
+
+  G4cout << colour.GetRed() << " " << colour.GetGreen() << " " << colour.GetBlue() << G4endl;
+
+  instanceColoursMap[phash]->InsertNextTuple3(red, green, blue);
 
   instancePositionMap[phash]->InsertNextPoint(fObjectTransformation.dx(),
                                               fObjectTransformation.dy(),
@@ -513,7 +548,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   instanceRotationMap[phash]->InsertNextTuple9(fInvObjTrans.xx(), fInvObjTrans.xy(),fInvObjTrans.xz(),
                                                fInvObjTrans.yx(), fInvObjTrans.yy(),fInvObjTrans.yz(),
                                                fInvObjTrans.zx(), fInvObjTrans.zy(),fInvObjTrans.zz());
-}
+
 #if 0
   vtkSmartPointer <vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
   vtkSmartPointer <vtkActor>         actor = vtkSmartPointer<vtkActor>::New();
@@ -567,3 +602,141 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
 
   polyhedronActorVector.push_back(actor);
 #endif
+}
+
+void G4VtkSceneHandler::Modified() {
+  for (auto it = polylineDataMap.begin(); it != polylineDataMap.end(); it++)
+    it->second->Modified();
+  for (auto it = polylineLineMap.begin(); it != polylineLineMap.end(); it++)
+    it->second->Modified();
+
+  for (auto it = circleDataMap.begin(); it != circleDataMap.end(); it++) {
+    it->second->Modified();
+  }
+
+  for (auto it = squareDataMap.begin(); it != squareDataMap.end(); it++) {
+    it->second->Modified();
+  }
+
+  for(auto it = instancePositionMap.begin(); it != instancePositionMap.end(); it++) {
+    it->second->Modified();
+  }
+
+  for(auto it = instanceRotationMap.begin(); it != instanceRotationMap.end(); it++) {
+    it->second->Modified();
+  }
+
+  for(auto it = instanceColoursMap.begin(); it != instanceColoursMap.end(); it++) {
+    it->second->Modified();
+  }
+
+  for(auto it = instancePolyDataMap.begin(); it != instancePolyDataMap.end(); it++) {
+    it->second->Modified();
+  }
+
+  for(auto it = instanceActorMap.begin(); it != instanceActorMap.end(); it++) {
+    it->second->Modified();
+  }
+
+  for(auto it = tgMap.begin(); it != tgMap.end(); it++) {
+    it->second->Update();
+  }
+
+  G4cout << "G4VtkSceneHandler::Modified()    polyline styles: " << polylineVisAttributesMap.size() << G4endl;
+  for (auto it = polylineLineMap.begin(); it != polylineLineMap.end(); it++)
+    G4cout << "G4VtkSceneHandler::Modified()   polyline segments: " << it->second->GetNumberOfCells() << G4endl;
+
+  G4cout << "G4VtkSceneHandler::Modified()       circle styles: " << circleVisAttributesMap.size() << G4endl;
+  for (auto it = circleDataMap.begin(); it != circleDataMap.end(); it++)
+    G4cout << "G4VtkSceneHandler::Modified()             circles: " << it->second->GetNumberOfPoints() << G4endl;
+
+  G4cout << "G4VtkSceneHandler::Modified()      square styles: " << squareVisAttributesMap.size() << G4endl;
+  for (auto it = squareDataMap.begin(); it != squareDataMap.end(); it++)
+    G4cout << "G4VtkSceneHanler::Modified()           squares: " << it->second->GetNumberOfPoints() << G4endl;
+
+  G4cout << "G4VtkSceneHandler::Modified()   unique polyhedra: " << polyhedronDataMap.size() << G4endl;
+
+  for (auto it = polyhedronPolyDataMap.begin(); it != polyhedronPolyDataMap.end(); it++) {
+    G4cout << "G4VtkSceneHandler::Modified()  polyhedronPolyData: " << it->second->GetPoints()->GetNumberOfPoints() << " " << it->second->GetPolys()->GetNumberOfCells() << " " << polyhedronPolyDataCountMap[it->first] <<G4endl;
+  }
+}
+
+void G4VtkSceneHandler::Clear() {
+  polylineVisAttributesMap.clear();
+  polylineDataMap.clear();
+  polylineLineMap.clear();
+  polylinePolyDataMap.clear();
+  polylinePolyDataMapperMap.clear();
+  polylinePolyDataActorMap.clear();
+
+  for (auto it = polylineDataMap.begin(); it != polylineDataMap.end(); it++)
+    it->second->Reset();
+  for (auto it = polylineLineMap.begin(); it != polylineLineMap.end(); it++)
+    it->second->Reset();
+
+  circleVisAttributesMap.clear();
+  circleDataMap.clear();
+  circlePolyDataMap.clear();
+  circleFilterMap.clear();
+  circlePolyDataMapperMap.clear();
+  circlePolyDataActorMap.clear();
+
+  for (auto it = squareDataMap.begin(); it != squareDataMap.end(); it++)
+    it->second->Reset();
+
+  squareVisAttributesMap.clear();
+  squareDataMap.clear();
+  squarePolyDataMap.clear();
+  squareFilterMap.clear();
+  squarePolyDataMapperMap.clear();
+  squarePolyDataActorMap.clear();
+
+  for (auto it = squareDataMap.begin(); it != squareDataMap.end(); it++)
+    it->second->Reset();
+
+  polyhedronVisAttributesMap.clear();
+  polyhedronPolyDataMap.clear();
+
+  // polyhedronMapperMap.clear();
+  // polyhedronActorVector.clear();
+}
+
+void G4VtkSceneHandler::AddSolid (const G4Box& box) {
+
+  G4VSceneHandler::AddSolid(box);
+
+#if 0
+  return;
+
+  const G4VModel* pv_model = GetModel();
+  if (!pv_model) { return ; }
+
+  G4PhysicalVolumeModel* pPVModel = dynamic_cast<G4PhysicalVolumeModel*>(fpModel);
+  if (!pPVModel) { return ; }
+
+  //-- debug information
+  if(1) {
+    G4VPhysicalVolume *pv = pPVModel->GetCurrentPV();
+    G4LogicalVolume   *lv = pv->GetLogicalVolume();
+    G4cout << "name=" << box.GetName() << " volumeType=" << pv->VolumeType() << " pvName=" << pv->GetName() << " lvName=" << lv->GetName() << " multiplicity=" << pv->GetMultiplicity() << " isparametrised=" << pv->IsParameterised() << " isreplicated=" << pv->IsReplicated() << " parametrisation=" << pv->GetParameterisation() << G4endl;
+  }
+
+  if(0) {
+    G4Material *mat = pPVModel->GetCurrentMaterial();
+    G4String name   = mat->GetName();
+    G4double dens   = mat->GetDensity()/(g/cm3);
+    G4int copyNo    = pPVModel->GetCurrentPV()->GetCopyNo();
+    G4int depth     = pPVModel->GetCurrentDepth();
+    G4cout << "    name    : " << box.GetName() << G4endl;
+    G4cout << "    copy no.: " << copyNo << G4endl;
+    G4cout << "    depth   : " << depth << G4endl;
+    G4cout << "    density : " << dens << " [g/cm3]" << G4endl;
+    G4cout << "    location: " << pPVModel->GetCurrentPV()->GetObjectTranslation() << G4endl;
+    G4cout << "    Multiplicity        : " << pPVModel->GetCurrentPV()->GetMultiplicity() << G4endl;
+    G4cout << "    Is replicated?      : " << pPVModel->GetCurrentPV()->IsReplicated() << G4endl;
+    G4cout << "    Is parameterised?   : " << pPVModel->GetCurrentPV()->IsParameterised() << G4endl;
+    G4cout << "    top phys. vol. name : " << pPVModel->GetTopPhysicalVolume()->GetName() << G4endl;
+#endif
+  }
+}
+

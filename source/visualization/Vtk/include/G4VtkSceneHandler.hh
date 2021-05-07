@@ -64,7 +64,7 @@
 #include "vtkPointData.h"
 #include "vtkTriangleFilter.h"
 #include "vtkTensorGlyph.h"
-
+#include "vtkScalarsToColors.h"
 #pragma GCC diagnostic pop
 
 class G4VtkSceneHandler: public G4VSceneHandler {
@@ -102,100 +102,9 @@ public:
     G4VSceneHandler::AddPrimitive(scale);
   }
 
-  void Modified() {
-    for (auto it = polylineDataMap.begin(); it != polylineDataMap.end(); it++)
-      it->second->Modified();
-    for (auto it = polylineLineMap.begin(); it != polylineLineMap.end(); it++)
-      it->second->Modified();
-
-    for (auto it = circleDataMap.begin(); it != circleDataMap.end(); it++) {
-      it->second->Modified();
-    }
-
-    for (auto it = squareDataMap.begin(); it != squareDataMap.end(); it++) {
-      it->second->Modified();
-    }
-
-    for(auto it = instancePositionMap.begin(); it != instancePositionMap.end(); it++) {
-      it->second->Modified();
-    }
-
-    for(auto it = instanceRotationMap.begin(); it != instanceRotationMap.end(); it++) {
-      it->second->Modified();
-    }
-
-    for(auto it = instanceActorMap.begin(); it != instanceActorMap.end(); it++) {
-      it->second->Modified();
-    }
-
-    for(auto it = tgMap.begin(); it != tgMap.end(); it++) {
-      it->second->Update();
-    }
-
-
-    G4cout << "G4VtkSceneHandler::Modified()    polyline styles: " << polylineVisAttributesMap.size() << G4endl;
-    for (auto it = polylineLineMap.begin(); it != polylineLineMap.end(); it++)
-      G4cout << "G4VtkSceneHandler::Modified()   polyline segments: " << it->second->GetNumberOfCells() << G4endl;
-
-    G4cout << "G4VtkSceneHandler::Modified()       circle styles: " << circleVisAttributesMap.size() << G4endl;
-    for (auto it = circleDataMap.begin(); it != circleDataMap.end(); it++)
-      G4cout << "G4VtkSceneHandler::Modified()             circles: " << it->second->GetNumberOfPoints() << G4endl;
-
-    G4cout << "G4VtkSceneHandler::Modified()      square styles: " << squareVisAttributesMap.size() << G4endl;
-    for (auto it = squareDataMap.begin(); it != squareDataMap.end(); it++)
-      G4cout << "G4VtkSceneHanler::Modified()           squares: " << it->second->GetNumberOfPoints() << G4endl;
-
-    G4cout << "G4VtkSceneHandler::Modified()   unique polyhedra: " << polyhedronDataMap.size() << G4endl;
-
-    for (auto it = polyhedronPolyDataMap.begin(); it != polyhedronPolyDataMap.end(); it++) {
-      G4cout << "G4VtkSceneHandler::Modified()  polyhedronPolyData: " << it->second->GetPoints()->GetNumberOfPoints() << " " << it->second->GetPolys()->GetNumberOfCells() << " " << polyhedronPolyDataCountMap[it->first] <<G4endl;
-    }
-
-   // G4cout << "G4VtkSceneHandler::Modified()    placed polyhedra: " << polyhedronActorVector.size() << G4endl;
-
-
-  }
-
-  void Clear() {
-    polylineVisAttributesMap.clear();
-    polylineDataMap.clear();
-    polylineLineMap.clear();
-    polylinePolyDataMap.clear();
-    polylinePolyDataMapperMap.clear();
-    polylinePolyDataActorMap.clear();
-
-    for (auto it = polylineDataMap.begin(); it != polylineDataMap.end(); it++)
-      it->second->Reset();
-    for (auto it = polylineLineMap.begin(); it != polylineLineMap.end(); it++)
-      it->second->Reset();
-
-    circleVisAttributesMap.clear();
-    circleDataMap.clear();
-    circlePolyDataMap.clear();
-    circleFilterMap.clear();
-    circlePolyDataMapperMap.clear();
-    circlePolyDataActorMap.clear();
-
-    for (auto it = squareDataMap.begin(); it != squareDataMap.end(); it++)
-      it->second->Reset();
-
-    squareVisAttributesMap.clear();
-    squareDataMap.clear();
-    squarePolyDataMap.clear();
-    squareFilterMap.clear();
-    squarePolyDataMapperMap.clear();
-    squarePolyDataActorMap.clear();
-
-    for (auto it = squareDataMap.begin(); it != squareDataMap.end(); it++)
-      it->second->Reset();
-
-    polyhedronVisAttributesMap.clear();
-    polyhedronPolyDataMap.clear();
-
-    // polyhedronMapperMap.clear();
-    // polyhedronActorVector.clear();
-
-  }
+  void AddSolid(const G4Box& box);
+  void Modified();
+  void Clear();
 
 protected:
   static G4int         fSceneIdCount;  // Counter for Vtk scene handlers.
@@ -236,6 +145,8 @@ protected:
 
   std::map<std::size_t, vtkSmartPointer<vtkPoints>>            instancePositionMap;
   std::map<std::size_t, vtkSmartPointer<vtkDoubleArray>>       instanceRotationMap;
+  std::map<std::size_t, vtkSmartPointer<vtkDoubleArray>>       instanceColoursMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyData>>          instancePolyDataMap;
   std::map<std::size_t, vtkSmartPointer<vtkActor>>             instanceActorMap;
   std::map<std::size_t, vtkSmartPointer<vtkTensorGlyph>>       tgMap;
 
