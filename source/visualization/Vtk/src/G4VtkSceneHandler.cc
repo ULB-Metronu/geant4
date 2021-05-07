@@ -736,7 +736,7 @@ void G4VtkSceneHandler::AddSolid (const G4Box& box) {
     G4cout << "    Is replicated?      : " << pPVModel->GetCurrentPV()->IsReplicated() << G4endl;
     G4cout << "    Is parameterised?   : " << pPVModel->GetCurrentPV()->IsParameterised() << G4endl;
     G4cout << "    top phys. vol. name : " << pPVModel->GetTopPhysicalVolume()->GetName() << G4endl;
-#endif
   }
+#endif
 }
 
