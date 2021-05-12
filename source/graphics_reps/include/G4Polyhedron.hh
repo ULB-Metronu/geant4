@@ -142,6 +142,11 @@ typedef Kernel::Vector_3                                  Vector;
 typedef CGAL::Surface_mesh<Kernel::Point_3>               Surface_mesh;
 typedef CGAL::Aff_transformation_3<Kernel>                Aff_transformation_3;
 
+//G4cout << "intersection valid      " << s0->is_valid(true) << " " << s1->is_valid(true) << G4endl;
+//G4cout << "intersection closed     " << CGAL::is_closed(*s0)       << " " << CGAL::is_closed(*s1) << G4endl;
+//G4cout << "intersection outward    " << CGAL::Polygon_mesh_processing::is_outward_oriented(*s0) << " " << CGAL::Polygon_mesh_processing::is_outward_oriented(*s1) << G4endl;
+//G4cout << "intersection self inter " << CGAL::Polygon_mesh_processing::does_self_intersect(*s0) << " " << CGAL::Polygon_mesh_processing::does_self_intersect(*s1) << G4endl;
+
 #pragma GCC diagnostic pop
 #endif
 
