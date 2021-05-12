@@ -495,27 +495,17 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
 
     vtkSmartPointer<vtkTensorGlyph> tensorGlyph = vtkSmartPointer<vtkTensorGlyph>::New();
     tensorGlyph->SetInputData(instancePolyData);
-    tensorGlyph->SetSourceConnection(filter->GetOutputPort());;
+    tensorGlyph->SetSourceConnection(filter->GetOutputPort());
     tensorGlyph->ColorGlyphsOn();
     tensorGlyph->ScalingOff();
     tensorGlyph->ThreeGlyphsOff();
     tensorGlyph->ExtractEigenvaluesOff();
     tensorGlyph->SetColorModeToScalars();
-    tensorGlyph->SetColorMode(0);
     tensorGlyph->Update();
 
-    //vtkSmartPointer<vtkScalarsToColors> lut = vtkSmartPointer<vtkScalarsToColors>::New();
-    //lut->SetVectorSize(3);
-    //lut->SetVectorModeToRGBColors();
     instanceMapper->SetInputData(tensorGlyph->GetOutput());
-    //instanceMapper->SetScalarModeToUsePointData();
-    //instanceMapper->SetLookupTable(lut);
-    //instanceMapper->SelectColorArray("colors");
-
     instanceActor->SetMapper(instanceMapper);
     instanceActor->SetVisibility(true);
-    // instanceActor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
-    // instanceActor->GetProperty()->SetOpacity(colour.GetAlpha());
 
     G4VtkViewer *pVtkViewer = dynamic_cast<G4VtkViewer *>(fpViewer);
     pVtkViewer->renderer->AddActor(instanceActor);
@@ -525,8 +515,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
     instanceColoursMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkDoubleArray>>(phash, instanceColors));
     instancePolyDataMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkPolyData>>(phash,instancePolyData));
     instanceActorMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkActor>>(phash, instanceActor));
-
-    tgMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkTensorGlyph>>(phash, tensorGlyph));
+    instanceTensorGlyphMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkTensorGlyph>>(phash, tensorGlyph));
   }
 
   polyhedronPolyDataCountMap[phash]++;
@@ -535,7 +524,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   double green = colour.GetGreen();
   double blue  = colour.GetBlue();
 
-  G4cout << colour.GetRed() << " " << colour.GetGreen() << " " << colour.GetBlue() << G4endl;
+  // G4cout << "Colours " << colour.GetRed() << " " << colour.GetGreen() << " " << colour.GetBlue() << G4endl;
 
   instanceColoursMap[phash]->InsertNextTuple3(red, green, blue);
 
@@ -549,59 +538,6 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
                                                fInvObjTrans.yx(), fInvObjTrans.yy(),fInvObjTrans.yz(),
                                                fInvObjTrans.zx(), fInvObjTrans.zy(),fInvObjTrans.zz());
 
-#if 0
-  vtkSmartPointer <vtkMatrix4x4> transform = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkSmartPointer <vtkActor>         actor = vtkSmartPointer<vtkActor>::New();
-  transform->SetElement(0, 0, fObjectTransformation.xx());
-  transform->SetElement(0, 1, fObjectTransformation.xy());
-  transform->SetElement(0, 2, fObjectTransformation.xz());
-
-  transform->SetElement(1, 0, fObjectTransformation.yx());
-  transform->SetElement(1, 1, fObjectTransformation.yy());
-  transform->SetElement(1, 2, fObjectTransformation.yz());
-
-  transform->SetElement(2, 0, fObjectTransformation.zx());
-  transform->SetElement(2, 1, fObjectTransformation.zy());
-  transform->SetElement(2, 2, fObjectTransformation.zz());
-
-  transform->SetElement(0, 3, fObjectTransformation.dx());
-  transform->SetElement(1, 3, fObjectTransformation.dy());
-  transform->SetElement(2, 3, fObjectTransformation.dz());
-  transform->SetElement(3, 3, 1.);
-
-  actor->SetUserMatrix(transform);
-  actor->SetMapper(polyhedronMapperMap[phash]);
-
-  actor->GetProperty()->SetColor(colour.GetRed(), colour.GetGreen(), colour.GetBlue());
-  actor->GetProperty()->SetOpacity(colour.GetAlpha());
-  actor->GetProperty()->SetLineWidth(lineWidth);
-  actor->GetProperty()->SetBackfaceCulling(false);
-  actor->SetVisibility(isVisible);
-
-  // Initial action depending on drawing style.
-  switch (drawing_style) {
-    case (G4ViewParameters::hsr): {
-      actor->GetProperty()->SetRepresentationToSurface();
-      break;
-    }
-    case (G4ViewParameters::hlr): {
-      actor->GetProperty()->SetRepresentationToSurface();
-      break;
-    }
-    case (G4ViewParameters::wireframe): {
-      actor->GetProperty()->SetRepresentationToWireframe();
-      break;
-    }
-    default: {
-      break;
-    }
-  }
-
-  G4VtkViewer *pVtkViewer = dynamic_cast<G4VtkViewer *>(fpViewer);
-  pVtkViewer->renderer->AddActor(actor);
-
-  polyhedronActorVector.push_back(actor);
-#endif
 }
 
 void G4VtkSceneHandler::Modified() {
@@ -638,7 +574,7 @@ void G4VtkSceneHandler::Modified() {
     it->second->Modified();
   }
 
-  for(auto it = tgMap.begin(); it != tgMap.end(); it++) {
+  for(auto it = instanceTensorGlyphMap.begin(); it != instanceTensorGlyphMap.end(); it++) {
     it->second->Update();
   }
 
@@ -662,6 +598,7 @@ void G4VtkSceneHandler::Modified() {
 }
 
 void G4VtkSceneHandler::Clear() {
+
   polylineVisAttributesMap.clear();
   polylineDataMap.clear();
   polylineLineMap.clear();
@@ -695,10 +632,17 @@ void G4VtkSceneHandler::Clear() {
     it->second->Reset();
 
   polyhedronVisAttributesMap.clear();
+  polyhedronDataMap.clear();
+  polyhedronPolyMap.clear();
   polyhedronPolyDataMap.clear();
+  polyhedronPolyDataCountMap.clear();
 
-  // polyhedronMapperMap.clear();
-  // polyhedronActorVector.clear();
+  instancePositionMap.clear();
+  instanceRotationMap.clear();
+  instanceColoursMap.clear();
+  instancePolyDataMap.clear();
+  instanceTensorGlyphMap.clear();
+  instanceActorMap.clear();
 }
 
 void G4VtkSceneHandler::AddSolid (const G4Box& box) {

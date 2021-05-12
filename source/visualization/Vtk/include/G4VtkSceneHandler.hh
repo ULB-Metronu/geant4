@@ -147,8 +147,9 @@ protected:
   std::map<std::size_t, vtkSmartPointer<vtkDoubleArray>>       instanceRotationMap;
   std::map<std::size_t, vtkSmartPointer<vtkDoubleArray>>       instanceColoursMap;
   std::map<std::size_t, vtkSmartPointer<vtkPolyData>>          instancePolyDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkTensorGlyph>>       instanceTensorGlyphMap;
   std::map<std::size_t, vtkSmartPointer<vtkActor>>             instanceActorMap;
-  std::map<std::size_t, vtkSmartPointer<vtkTensorGlyph>>       tgMap;
+
 
 private:
 #ifdef G4VTKDEBUG
