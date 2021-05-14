@@ -140,15 +140,13 @@ protected:
   std::map<std::size_t, vtkSmartPointer<vtkPolyData>>          polyhedronPolyDataMap;
   std::map<std::size_t, std::size_t>                           polyhedronPolyDataCountMap;
 
-  //std::map<std::size_t, vtkSmartPointer<vtkPolyDataMapper>>    polyhedronMapperMap;
-  //std::map<std::size_t, vtkSmartPointer<vtkActor>>             polyhedronActorMap;
-
-  std::map<std::size_t, vtkSmartPointer<vtkPoints>>            instancePositionMap;
-  std::map<std::size_t, vtkSmartPointer<vtkDoubleArray>>       instanceRotationMap;
-  std::map<std::size_t, vtkSmartPointer<vtkDoubleArray>>       instanceColoursMap;
-  std::map<std::size_t, vtkSmartPointer<vtkPolyData>>          instancePolyDataMap;
-  std::map<std::size_t, vtkSmartPointer<vtkTensorGlyph>>       instanceTensorGlyphMap;
-  std::map<std::size_t, vtkSmartPointer<vtkActor>>             instanceActorMap;
+  // map for polyhedra instances
+  std::map<std::size_t, vtkSmartPointer<vtkPoints>>                 instancePositionMap;
+  std::map<std::size_t, vtkSmartPointer<vtkDoubleArray>>            instanceRotationMap;
+  std::map<std::size_t, vtkSmartPointer<vtkDoubleArray>>            instanceColoursMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyData>>               instancePolyDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkTensorGlyph>>            instanceTensorGlyphMap;
+  std::map<std::size_t, vtkSmartPointer<vtkActor>>                  instanceActorMap;
 
 
 private:
