@@ -58,6 +58,7 @@ public:
   G4VtkViewer(G4VSceneHandler &, const G4String &name);
   virtual ~G4VtkViewer();
   void SetView();
+  void SetGeant4View() {};
   void ClearView();
   void DrawView();
   void ShowView();
