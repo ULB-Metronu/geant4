@@ -482,18 +482,19 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
     vtkSmartPointer<vtkActor>              instanceActor = vtkSmartPointer<vtkActor>::New();
     instanceColors->SetName("colors");
 
-    instanceColors->SetNumberOfComponents(3);
+    instanceColors->SetNumberOfComponents(4);
     instanceRotation->SetNumberOfComponents(9);
 
     vtkSmartPointer<vtkPolyData> instancePolyData = vtkSmartPointer<vtkPolyData>::New();
     instancePolyData->SetPoints(instancePosition);
     instancePolyData->GetPointData()->SetTensors(instanceRotation);
+    instancePolyData->GetPointData()->SetVectors(instanceColors);
     instancePolyData->GetPointData()->SetScalars(instanceColors);
 
     vtkSmartPointer<vtkTriangleFilter> filter = vtkSmartPointer<vtkTriangleFilter>::New();
     filter->AddInputData(polydata);
 
-    vtkSmartPointer<vtkTensorGlyph> tensorGlyph = vtkSmartPointer<vtkTensorGlyph>::New();
+    vtkSmartPointer<vtkTensorGlyphColor> tensorGlyph = vtkSmartPointer<vtkTensorGlyphColor>::New();
     tensorGlyph->SetInputData(instancePolyData);
     tensorGlyph->SetSourceConnection(filter->GetOutputPort());
     tensorGlyph->ColorGlyphsOn();
@@ -504,6 +505,10 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
     tensorGlyph->Update();
 
     instanceMapper->SetInputData(tensorGlyph->GetOutput());
+    // instanceMapper->SetScalarModeToUsePointFieldData();
+    instanceMapper->SetColorModeToDirectScalars();
+    //instanceMapper->ScalarVisibilityOff();
+
     instanceActor->SetMapper(instanceMapper);
     instanceActor->SetVisibility(true);
 
@@ -515,7 +520,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
     instanceColoursMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkDoubleArray>>(phash, instanceColors));
     instancePolyDataMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkPolyData>>(phash,instancePolyData));
     instanceActorMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkActor>>(phash, instanceActor));
-    instanceTensorGlyphMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkTensorGlyph>>(phash, tensorGlyph));
+    instanceTensorGlyphMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkTensorGlyphColor>>(phash, tensorGlyph));
   }
 
   polyhedronPolyDataCountMap[phash]++;
@@ -523,10 +528,9 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   double red   = colour.GetRed();
   double green = colour.GetGreen();
   double blue  = colour.GetBlue();
+  double alpha = colour.GetAlpha();
 
-  // G4cout << "Colours " << colour.GetRed() << " " << colour.GetGreen() << " " << colour.GetBlue() << G4endl;
-
-  instanceColoursMap[phash]->InsertNextTuple3(red, green, blue);
+  instanceColoursMap[phash]->InsertNextTuple4(red, green, blue, alpha);
 
   instancePositionMap[phash]->InsertNextPoint(fObjectTransformation.dx(),
                                               fObjectTransformation.dy(),

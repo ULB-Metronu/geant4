@@ -23,10 +23,12 @@ GEANT4_DEFINE_MODULE(NAME G4visVtk
         G4Vtk.hh
         G4VtkSceneHandler.hh
         G4VtkViewer.hh
+        vtkTensorGlyphColor.h
     SOURCES
         G4Vtk.cc
         G4VtkSceneHandler.cc
         G4VtkViewer.cc
+        vtkTensorGlyphColor.cxx
     GRANULAR_DEPENDENCIES
         G4csg
         G4geometrymng

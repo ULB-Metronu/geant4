@@ -64,6 +64,7 @@
 #include "vtkPointData.h"
 #include "vtkTriangleFilter.h"
 #include "vtkTensorGlyph.h"
+#include "vtkTensorGlyphColor.h"
 #include "vtkScalarsToColors.h"
 #pragma GCC diagnostic pop
 
@@ -145,7 +146,7 @@ protected:
   std::map<std::size_t, vtkSmartPointer<vtkDoubleArray>>            instanceRotationMap;
   std::map<std::size_t, vtkSmartPointer<vtkDoubleArray>>            instanceColoursMap;
   std::map<std::size_t, vtkSmartPointer<vtkPolyData>>               instancePolyDataMap;
-  std::map<std::size_t, vtkSmartPointer<vtkTensorGlyph>>            instanceTensorGlyphMap;
+  std::map<std::size_t, vtkSmartPointer<vtkTensorGlyphColor>>       instanceTensorGlyphMap;
   std::map<std::size_t, vtkSmartPointer<vtkActor>>                  instanceActorMap;
 
 
