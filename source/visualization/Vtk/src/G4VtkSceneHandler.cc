@@ -409,9 +409,9 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
 
   // Get vis attributes - pick up defaults if none.
   const G4VisAttributes *pVA = fpViewer->GetApplicableVisAttributes(polyhedron.GetVisAttributes());
-  G4Color colour = pVA->GetColour();
-  G4bool isVisible = pVA->IsVisible();
-  G4double lineWidth = pVA->GetLineWidth();
+  G4Color                       colour = pVA->GetColour();
+  G4bool                     isVisible = pVA->IsVisible();
+  G4double                   lineWidth = pVA->GetLineWidth();
   G4VisAttributes::LineStyle lineStyle = pVA->GetLineStyle();
 
   // G4double lineWidthScale = drawing_style.GetGlobalLineWidthScale();
@@ -433,7 +433,6 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
 
   std::size_t vhash = 0;
   std::hash_combine(vhash,static_cast<int>(drawing_style));
-  std::hash_combine(vhash,pVA->GetColor().GetAlpha());
 
   std::size_t phash = std::hash<G4Polyhedron>{}(polyhedron);
 
@@ -441,7 +440,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   std::hash_combine(hash, phash);
   std::hash_combine(hash, vhash);
 
-  if (polyhedronPolyDataMap.find(phash) == polyhedronPolyDataMap.end()) {
+  if (polyhedronPolyDataMap.find(hash) == polyhedronPolyDataMap.end()) {
 
     vtkSmartPointer<vtkPoints>     points = vtkSmartPointer<vtkPoints>::New();
     vtkSmartPointer<vtkCellArray>   polys = vtkSmartPointer<vtkCellArray>::New();
@@ -470,10 +469,10 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
     polydata->SetPoints(points);
     polydata->SetPolys(polys);
 
-    polyhedronDataMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkPoints>>(phash, points));
-    polyhedronPolyMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkCellArray>>(phash, polys));
-    polyhedronPolyDataMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkPolyData>>(phash, polydata));
-    polyhedronPolyDataCountMap.insert(std::pair<std::size_t, std::size_t>(phash, 0));
+    polyhedronDataMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkPoints>>(hash, points));
+    polyhedronPolyMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkCellArray>>(hash, polys));
+    polyhedronPolyDataMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkPolyData>>(hash, polydata));
+    polyhedronPolyDataCountMap.insert(std::pair<std::size_t, std::size_t>(hash, 0));
 
     vtkSmartPointer<vtkPoints>          instancePosition = vtkSmartPointer<vtkPoints>::New();
     vtkSmartPointer<vtkDoubleArray>     instanceRotation = vtkSmartPointer<vtkDoubleArray>::New();
@@ -505,40 +504,49 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
     tensorGlyph->Update();
 
     instanceMapper->SetInputData(tensorGlyph->GetOutput());
-    // instanceMapper->SetScalarModeToUsePointFieldData();
     instanceMapper->SetColorModeToDirectScalars();
-    //instanceMapper->ScalarVisibilityOff();
 
     instanceActor->SetMapper(instanceMapper);
     instanceActor->SetVisibility(true);
 
+    if(drawing_style == G4ViewParameters::hsr) {
+
+    }
+
+    if(drawing_style == G4ViewParameters::hlr) {
+    }
+
+    if(drawing_style == G4ViewParameters::wireframe) {
+      instanceActor->GetProperty()->SetRepresentationToWireframe();
+    }
+
     G4VtkViewer *pVtkViewer = dynamic_cast<G4VtkViewer *>(fpViewer);
     pVtkViewer->renderer->AddActor(instanceActor);
 
-    instancePositionMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkPoints>>(phash, instancePosition));
-    instanceRotationMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkDoubleArray>>(phash, instanceRotation));
-    instanceColoursMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkDoubleArray>>(phash, instanceColors));
-    instancePolyDataMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkPolyData>>(phash,instancePolyData));
-    instanceActorMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkActor>>(phash, instanceActor));
-    instanceTensorGlyphMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkTensorGlyphColor>>(phash, tensorGlyph));
+    instancePositionMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkPoints>>(hash, instancePosition));
+    instanceRotationMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkDoubleArray>>(hash, instanceRotation));
+    instanceColoursMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkDoubleArray>>(hash, instanceColors));
+    instancePolyDataMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkPolyData>>(hash,instancePolyData));
+    instanceActorMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkActor>>(hash, instanceActor));
+    instanceTensorGlyphMap.insert(std::pair<std::size_t, vtkSmartPointer<vtkTensorGlyphColor>>(hash, tensorGlyph));
   }
 
-  polyhedronPolyDataCountMap[phash]++;
+  polyhedronPolyDataCountMap[hash]++;
 
   double red   = colour.GetRed();
   double green = colour.GetGreen();
   double blue  = colour.GetBlue();
   double alpha = colour.GetAlpha();
 
-  instanceColoursMap[phash]->InsertNextTuple4(red, green, blue, alpha);
+  instanceColoursMap[hash]->InsertNextTuple4(red, green, blue, alpha);
 
-  instancePositionMap[phash]->InsertNextPoint(fObjectTransformation.dx(),
+  instancePositionMap[hash]->InsertNextPoint(fObjectTransformation.dx(),
                                               fObjectTransformation.dy(),
                                               fObjectTransformation.dz());
 
   G4Transform3D fInvObjTrans = fObjectTransformation.inverse();
 
-  instanceRotationMap[phash]->InsertNextTuple9(fInvObjTrans.xx(), fInvObjTrans.xy(),fInvObjTrans.xz(),
+  instanceRotationMap[hash]->InsertNextTuple9(fInvObjTrans.xx(), fInvObjTrans.xy(),fInvObjTrans.xz(),
                                                fInvObjTrans.yx(), fInvObjTrans.yy(),fInvObjTrans.yz(),
                                                fInvObjTrans.zx(), fInvObjTrans.zy(),fInvObjTrans.zz());
 
