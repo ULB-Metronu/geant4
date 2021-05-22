@@ -70,15 +70,15 @@ void G4VtkViewer::SetView() {
 #endif
 
   // culling
-  G4bool isCulling          = fVP.IsCulling();
+  G4bool isCulling = fVP.IsCulling();
   G4bool isCullingInvisible = fVP.IsCullingInvisible();
-  G4bool isDensityCulling   = fVP.IsDensityCulling();
-  G4bool isCullingCovered   = fVP.IsCullingCovered();
+  G4bool isDensityCulling = fVP.IsDensityCulling();
+  G4bool isCullingCovered = fVP.IsCullingCovered();
 
-  G4cout << "G4VtkViewer::SetView() called> isCulling:         " << isCulling          << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> isCulling:         " << isCulling << G4endl;
   G4cout << "G4VtkViewer::SetView() called> isCullingInvisible:" << isCullingInvisible << G4endl;
-  G4cout << "G4VtkViewer::SetView() called> isDensityCulling:  " << isDensityCulling   << G4endl;
-  G4cout << "G4VtkViewer::SetView() called> isCullingCovered:  " << isCullingCovered   << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> isDensityCulling:  " << isDensityCulling << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> isCullingCovered:  " << isCullingCovered << G4endl;
 
   // background colour
   const G4Colour backgroundColour = fVP.GetBackgroundColour();
@@ -124,8 +124,6 @@ void G4VtkViewer::SetView() {
     vtkSmartPointer<vtkInteractorStyleTerrain> style = vtkSmartPointer<vtkInteractorStyleTerrain>::New();
     // renderWindowInteractor->SetInteractorStyle(style);
   }
-
-
 }
 
 void G4VtkViewer::ClearView() {
