@@ -131,7 +131,7 @@ void G4VtkViewer::ClearView() {
   vtkActor *actor = actors->GetLastActor();
 
   while(actor) {
-    G4cout << actor << G4endl;
+    G4cout << "G4VtkViewer::ClearView() remove actor " << actor << G4endl;
     renderer->RemoveActor(actor);
     actor = actors->GetLastActor();
   }
@@ -140,7 +140,7 @@ void G4VtkViewer::ClearView() {
   vtkProp *prop  = props->GetLastProp();
 
   while(prop) {
-    G4cout << prop << G4endl;
+    G4cout << "G4VtkViewer::ClearView() remove prop " << prop << G4endl;
     renderer->RemoveViewProp(prop);
     prop = props->GetLastProp();
   }
