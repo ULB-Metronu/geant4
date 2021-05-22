@@ -47,11 +47,56 @@
 #include "vtkRenderWindow.h"
 #include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkInteractorStyleTerrain.h"
+#include "vtkTextActor.h"
 #pragma GCC diagnostic pop
 
 // VTK_MODULE_INIT(vtkRenderingOpenGL2)
 VTK_MODULE_INIT(vtkRenderingFreeType)
 
+
+class vtkInfoCallback : public vtkCommand
+{
+public:
+  static vtkInfoCallback *New() { return new vtkInfoCallback; }
+
+  vtkInfoCallback() {
+    t1 = std::chrono::steady_clock::now();
+    t2 = std::chrono::steady_clock::now();
+  }
+  void SetTextActor(vtkTextActor *txt) { this->TextActor = txt; }
+
+  virtual void Execute(vtkObject *caller, unsigned long, void*)
+  {
+    vtkRenderer *ren = reinterpret_cast<vtkRenderer *>(caller);
+    int      nActors = ren->GetActors()->GetNumberOfItems();
+    vtkCamera   *cam = ren->GetActiveCamera();
+    if(!cam) return;
+
+    double      *pos = cam->GetPosition();
+    if(!pos) return;
+
+    // Get current time
+    t2 = std::chrono::steady_clock::now();
+
+    // Frame rate calculation
+    std::chrono::duration<double> tdiff = t2-t1;
+    t1 = t2;
+    float fps = 1.0/tdiff.count();
+
+    // String for display
+    sprintf(this->TextBuff,"camera position : %.1f  %.1f %.1f \n"
+                           "number actors   : %i\n"
+                           "fps             : %.1f",pos[0], pos[1], pos[2],nActors,fps);
+    if(this->TextActor) {
+      this->TextActor->SetInput(this->TextBuff);
+    }
+  }
+protected:
+  vtkTextActor *TextActor;
+  char TextBuff[256];
+  std::chrono::time_point<std::chrono::steady_clock> t1;
+  std::chrono::time_point<std::chrono::steady_clock> t2;
+};
 
 class G4VtkViewer: public G4VViewer {
 public:
@@ -63,6 +108,8 @@ public:
   void DrawView();
   void ShowView();
 
+  vtkNew<vtkTextActor>              infoTextActor;
+  vtkNew<vtkInfoCallback>           infoCallback;
   vtkNew<vtkCamera>                 camera;
   vtkNew<vtkRenderer>               renderer;
   vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;

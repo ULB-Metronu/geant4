@@ -182,6 +182,12 @@ void G4VtkViewer::ShowView() {
 
   G4VtkSceneHandler& fVtkSceneHandler = dynamic_cast<G4VtkSceneHandler&>(fSceneHandler);
   fVtkSceneHandler.Modified();
+
+  infoTextActor->GetTextProperty()->SetFontSize(28);
+  infoCallback->SetTextActor(infoTextActor);
+  renderer->AddObserver(vtkCommand::EndEvent,infoCallback);
+  renderer->AddActor(infoTextActor);
+
   renderWindow->Render();
   renderWindowInteractor->Initialize();
   renderWindowInteractor->Start();
