@@ -87,29 +87,46 @@ void G4VtkViewer::SetView() {
 
   // Camera
   G4double radius = fSceneHandler.GetExtent().GetExtentRadius();
-  if(radius<=0.) radius = 1.;
-  G4double  cameraDistance        = fVP.GetCameraDistance(2*radius);
-  G4double  fieldHalfAngle        = fVP.GetFieldHalfAngle();
-  G4double  zoomFactor            = fVP.GetZoomFactor();
-  G4double  dolly                 = fVP.GetDolly();
-  G4Point3D viewpointDirection    = fVP.GetViewpointDirection();
-  G4Point3D targetPoint           = fVP.GetCurrentTargetPoint();
-  const G4Vector3D upVector       = fVP.GetUpVector();
-  const G4Vector3D lightDirection = fVP.GetLightpointDirection();
+  if (radius <= 0.) radius = 1.;
+  G4double cameraDistance = fVP.GetCameraDistance(2 * radius);
+  G4double fieldHalfAngle = fVP.GetFieldHalfAngle();
+  G4double zoomFactor = fVP.GetZoomFactor();
+  G4double dolly = fVP.GetDolly();
+  G4Point3D viewpointDirection = fVP.GetViewpointDirection();
+  G4Point3D targetPoint = fVP.GetCurrentTargetPoint();
 
-  G4Point3D cameraPosition        = targetPoint + viewpointDirection.unit()*cameraDistance;
+  G4Point3D cameraPosition = targetPoint + viewpointDirection.unit() * cameraDistance;
 
   G4cout << "G4VtkViewer::SetView() called>     CameraDistance: " << cameraDistance << G4endl;
   G4cout << "G4VtkViewer::SetView() called>     FieldHalfAngle: " << fieldHalfAngle << G4endl;
   G4cout << "G4VtkViewer::SetView() called>         ZoomFactor: " << zoomFactor << G4endl;
   G4cout << "G4VtkViewer::SetView() called>              Dolly: " << dolly << G4endl;
-  G4cout << "G4VtkViewer::SetView() called> ViewpointDirection: " << viewpointDirection.x() << " " << viewpointDirection.y() << " " << viewpointDirection.z() << G4endl;
-  G4cout << "G4VtkViewer::SetView() called> CurrentTargetPoint: " << targetPoint.x() << " " << targetPoint.y() << " " << targetPoint.z() << G4endl;
-  G4cout << "G4VtkViewer::SetView() called>           UpVector: " << upVector.x() << " " << upVector.y() << " " << upVector.z() << G4endl;
-  G4cout << "G4VtkViewer::SetView() called>     LightDirection: " << lightDirection.x() << " " << lightDirection.y() << " " << lightDirection.z() << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> ViewpointDirection: " << viewpointDirection.x() << " "
+         << viewpointDirection.y() << " " << viewpointDirection.z() << G4endl;
+  G4cout << "G4VtkViewer::SetView() called> CurrentTargetPoint: " << targetPoint.x() << " " << targetPoint.y() << " "
+         << targetPoint.z() << G4endl;
 
   camera->SetFocalPoint(targetPoint.x(), targetPoint.y(), targetPoint.z());
   camera->SetPosition(cameraPosition.x(), cameraPosition.y(), cameraPosition.z());
+
+  // Light
+  const G4Vector3D lightDirection = fVP.GetLightpointDirection();
+  G4bool lightsMoveWithCamera = fVP.GetLightsMoveWithCamera();
+  G4Vector3D lightPosition = targetPoint + lightDirection.unit() * cameraDistance;
+  G4cout << "G4VtkViewer::SetView() called>      LightDirection: " << lightDirection.x() << " " << lightDirection.y()
+         << " " << lightDirection.z() << G4endl;
+  G4cout << "G4VtkViewer::SetView() called>LightsMoveWithCamera: " << lightsMoveWithCamera << G4endl;
+  light->SetPosition(lightPosition.x(), lightPosition.y(), lightPosition.z());
+  if (lightsMoveWithCamera) {
+    renderer->SetLightFollowCamera(true);
+  }
+  else {
+    renderer->SetLightFollowCamera(false);
+  }
+
+  // Rotation style
+  const G4Vector3D upVector       = fVP.GetUpVector();
+  G4cout << "G4VtkViewer::SetView() called>           UpVector: " << upVector.x() << " " << upVector.y() << " " << upVector.z() << G4endl;
 
   // Interaction (rotation style)
   G4ViewParameters::RotationStyle rotationStyle  = fVP.GetRotationStyle();

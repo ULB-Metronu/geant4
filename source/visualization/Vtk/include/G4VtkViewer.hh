@@ -42,6 +42,7 @@
 #include "vtkObject.h"
 #include "vtkAutoInit.h"
 #include "vtkCamera.h"
+#include "vtkLight.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderWindow.h"
@@ -110,6 +111,7 @@ public:
 
   vtkNew<vtkTextActor>              infoTextActor;
   vtkNew<vtkInfoCallback>           infoCallback;
+  vtkNew<vtkLight>                  light;
   vtkNew<vtkCamera>                 camera;
   vtkNew<vtkRenderer>               renderer;
   vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
