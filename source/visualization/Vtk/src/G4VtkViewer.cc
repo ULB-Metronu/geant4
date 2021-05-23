@@ -238,6 +238,12 @@ void G4VtkViewer::ShowView() {
   fVtkSceneHandler.Modified();
 
   infoTextActor->GetTextProperty()->SetFontSize(28);
+  G4Colour colour = fVP.GetBackgroundColour();
+
+  // make sure text is always visible
+  infoTextActor->GetTextProperty()->SetColor(fmod(colour.GetRed()   + 0.5, 1.0),
+                                             fmod(colour.GetGreen() + 0.5, 1.0),
+                                             fmod(colour.GetBlue()  + 0.5, 1.0));
   infoCallback->SetTextActor(infoTextActor);
   renderer->AddObserver(vtkCommand::EndEvent,infoCallback);
   renderer->AddActor(infoTextActor);
