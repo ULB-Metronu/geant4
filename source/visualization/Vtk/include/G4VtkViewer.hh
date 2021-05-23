@@ -138,7 +138,7 @@ public:
   vtkNew<vtkTextActor>              infoTextActor;
   vtkNew<vtkInfoCallback>           infoCallback;
   vtkNew<vtkGeant4Callback>         geant4Callback;
-  vtkNew<vtkLight>                  light;
+  vtkSmartPointer<vtkLight>         light;
   vtkNew<vtkCamera>                 camera;
   vtkNew<vtkRenderer>               renderer;
   vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;

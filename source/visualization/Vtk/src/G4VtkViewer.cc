@@ -145,13 +145,29 @@ void G4VtkViewer::SetView() {
   G4cout << "G4VtkViewer::SetView() called>       setting LightDirection: " << lightDirection.x() << " "
                                                                             << lightDirection.y() << " "
                                                                             << lightDirection.z() << G4endl;
+
   G4cout << "G4VtkViewer::SetView() called> setting lightsMoveWithCamera: " << lightsMoveWithCamera << G4endl;
-  light->SetPosition(lightPosition.x(), lightPosition.y(), lightPosition.z());
+
+
   if (lightsMoveWithCamera) {
+    G4cout << "G4VtkViewer::SetView() called> setting lightsMoveWithCamera: " << lightsMoveWithCamera << G4endl;
+    light = vtkSmartPointer<vtkLight>::New();
+    light->SetLightTypeToCameraLight();
+    light->SetPosition(camera->GetPosition());
+    renderer->RemoveAllLights();
+    renderer->AddLight(light);
     renderer->SetLightFollowCamera(true);
+    renderWindowInteractor->SetLightFollowCamera(true);
   }
   else {
+    G4cout << "G4VtkViewer::SetView() called> setting lightsMoveWithCamera: " << lightsMoveWithCamera << G4endl;
+    light = vtkSmartPointer<vtkLight>::New();
+    light->SetLightTypeToSceneLight();
+    light->SetPosition(lightDirection.unit()*cameraDistance*100);
+    renderer->RemoveAllLights();
+    renderer->AddLight(light);
     renderer->SetLightFollowCamera(false);
+    renderWindowInteractor->SetLightFollowCamera(false);
   }
 
   // Rotation style
