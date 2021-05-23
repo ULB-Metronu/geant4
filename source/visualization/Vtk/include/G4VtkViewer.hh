@@ -54,6 +54,25 @@
 // VTK_MODULE_INIT(vtkRenderingOpenGL2)
 VTK_MODULE_INIT(vtkRenderingFreeType)
 
+class vtkGeant4Callback : public vtkCommand
+{
+public:
+  static vtkGeant4Callback* New() {return new vtkGeant4Callback;}
+
+  vtkGeant4Callback() { fVP = nullptr; }
+  void SetGeant4ViewParameters(G4ViewParameters *VP) { fVP = VP;}
+
+  virtual void Execute(vtkObject *caller, unsigned long, void*)
+  {
+    vtkRenderer *ren = reinterpret_cast<vtkRenderer *>(caller);
+    vtkCamera *cam = ren->GetActiveCamera();
+    fVP->SetCurrentTargetPoint(G4Point3D(cam->GetFocalPoint()));
+    fVP->SetViewpointDirection((G4Point3D(cam->GetPosition()) - G4Point3D(cam->GetFocalPoint())).unit());
+  }
+
+protected:
+  G4ViewParameters *fVP;
+};
 
 class vtkInfoCallback : public vtkCommand
 {
@@ -73,7 +92,11 @@ public:
     vtkCamera   *cam = ren->GetActiveCamera();
     if(!cam) return;
 
-    double      *pos = cam->GetPosition();
+    double      *pos     = cam->GetPosition();
+    double viewAngle     = cam->GetViewAngle();
+    double distance      = cam->GetDistance();
+    double parallelScale = cam->GetParallelScale();
+
     if(!pos) return;
 
     // Get current time
@@ -86,8 +109,11 @@ public:
 
     // String for display
     sprintf(this->TextBuff,"camera position : %.1f  %.1f %.1f \n"
+                           "view angle      : %.1f\n"
+                           "distance        : %.1f\n"
+                           "parallel scale  : %.1f\n"
                            "number actors   : %i\n"
-                           "fps             : %.1f",pos[0], pos[1], pos[2],nActors,fps);
+                           "fps             : %.1f",pos[0], pos[1], pos[2], viewAngle, distance, parallelScale, nActors, fps);
     if(this->TextActor) {
       this->TextActor->SetInput(this->TextBuff);
     }
@@ -111,6 +137,7 @@ public:
 
   vtkNew<vtkTextActor>              infoTextActor;
   vtkNew<vtkInfoCallback>           infoCallback;
+  vtkNew<vtkGeant4Callback>         geant4Callback;
   vtkNew<vtkLight>                  light;
   vtkNew<vtkCamera>                 camera;
   vtkNew<vtkRenderer>               renderer;

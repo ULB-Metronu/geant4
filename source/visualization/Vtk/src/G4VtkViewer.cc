@@ -57,8 +57,12 @@ G4VViewer(sceneHandler, sceneHandler.IncrementViewCount(), name) {
   camera->SetFocalPoint(0, 0, 0);
   renderer->SetActiveCamera(camera);
 
-  vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-  renderWindowInteractor->SetInteractorStyle(style);
+  // Set callback to match VTK parameters to Geant4
+  geant4Callback->SetGeant4ViewParameters(&fVP);
+  renderer->AddObserver(vtkCommand::EndEvent, geant4Callback);
+
+  // vtkSmartPointer<vtkInteractorStyleTrackballCamera> style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+  // renderWindowInteractor->SetInteractorStyle(style);
 }
 
 G4VtkViewer::~G4VtkViewer() {}
