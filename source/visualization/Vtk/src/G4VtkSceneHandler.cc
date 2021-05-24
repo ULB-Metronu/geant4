@@ -48,7 +48,7 @@
 #include "G4Box.hh"
 
 namespace std {
-  inline void hash_combine(std::size_t &seed) {}
+  inline void hash_combine(std::size_t) {}
 
   template<typename T, typename... Rest>
   inline void hash_combine(std::size_t &seed, const T &v, Rest... rest) {
@@ -225,11 +225,10 @@ void G4VtkSceneHandler::AddPrimitive(const G4Text& text) {
   const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(text.GetVisAttributes());
   G4Color colour             = pVA->GetColour();
   G4double opacity           = colour.GetAlpha();
-  G4Text::Layout layout      = text.GetLayout();
-  G4double xOffset           = text.GetXOffset();
-  G4double yOffset           = text.GetYOffset();
+  // G4Text::Layout layout      = text.GetLayout();
+  // G4double xOffset           = text.GetXOffset();
+  // G4double yOffset           = text.GetYOffset();
 
-  auto position = fObjectTransformation*G4Translate3D(text.GetPosition());
   double x = text.GetPosition().x();
   double y = text.GetPosition().y();
   double z = text.GetPosition().z();
@@ -284,7 +283,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Circle& circle) {
   const G4VisAttributes *pVA = fpViewer->GetApplicableVisAttributes(circle.GetVisAttributes());
   G4Color colour = pVA->GetColour();
   G4double opacity = colour.GetAlpha();
-  G4bool isVisible = pVA->IsVisible();
+  // G4bool isVisible = pVA->IsVisible();
 
 #ifdef G4VTKDEBUG
   G4cout << "=================================" << G4endl;
@@ -345,7 +344,7 @@ void G4VtkSceneHandler::AddPrimitive(const G4Square& square) {
   const G4VisAttributes* pVA = fpViewer -> GetApplicableVisAttributes(square.GetVisAttributes());
   G4Color colour    = pVA->GetColour();
   G4double opacity  = colour.GetAlpha();
-  G4bool  isVisible = pVA->IsVisible();
+  // G4bool  isVisible = pVA->IsVisible();
 
   // Draw in world coordinates.
   vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();
@@ -410,9 +409,9 @@ void G4VtkSceneHandler::AddPrimitive(const G4Polyhedron& polyhedron) {
   // Get vis attributes - pick up defaults if none.
   const G4VisAttributes *pVA = fpViewer->GetApplicableVisAttributes(polyhedron.GetVisAttributes());
   G4Color                       colour = pVA->GetColour();
-  G4bool                     isVisible = pVA->IsVisible();
-  G4double                   lineWidth = pVA->GetLineWidth();
-  G4VisAttributes::LineStyle lineStyle = pVA->GetLineStyle();
+  // G4bool                     isVisible = pVA->IsVisible();
+  // G4double                   lineWidth = pVA->GetLineWidth();
+  // G4VisAttributes::LineStyle lineStyle = pVA->GetLineStyle();
 
   // G4double lineWidthScale = drawing_style.GetGlobalLineWidthScale();
 

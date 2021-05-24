@@ -74,10 +74,10 @@ void G4VtkViewer::SetView() {
 #endif
 
   // culling
-  G4bool isCulling = fVP.IsCulling();
-  G4bool isCullingInvisible = fVP.IsCullingInvisible();
-  G4bool isDensityCulling = fVP.IsDensityCulling();
-  G4bool isCullingCovered = fVP.IsCullingCovered();
+  // G4bool isCulling = fVP.IsCulling();
+  // G4bool isCullingInvisible = fVP.IsCullingInvisible();
+  // G4bool isDensityCulling = fVP.IsDensityCulling();
+  // G4bool isCullingCovered = fVP.IsCullingCovered();
 
   //G4cout << "G4VtkViewer::SetView() called> isCulling:         " << isCulling << G4endl;
   //G4cout << "G4VtkViewer::SetView() called> isCullingInvisible:" << isCullingInvisible << G4endl;
@@ -95,7 +95,7 @@ void G4VtkViewer::SetView() {
   G4double      cameraDistance = fVP.GetCameraDistance(2 * radius);
   G4double      fieldHalfAngle = fVP.GetFieldHalfAngle();
   G4double          zoomFactor = fVP.GetZoomFactor();
-  G4double               dolly = fVP.GetDolly();
+  // G4double               dolly = fVP.GetDolly();
   G4Point3D viewpointDirection = fVP.GetViewpointDirection();
   G4Point3D        targetPoint = fVP.GetCurrentTargetPoint();
 
