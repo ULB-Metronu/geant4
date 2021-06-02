@@ -171,6 +171,13 @@ endif()
 geant4_add_feature(GEANT4_USE_TBB "Enable (optional) use of TBB as a tasking backend")
 
 #-----------------------------------------------------------------------
+#   Allow diffractive scattering from p/n on A>10 target
+#
+option(GEANT4_USE_FTFP_HEAVY_DIFF "Use diffraction for p/n on A>10 target" OFF)
+geant4_add_feature(GEANT4_USE_FTFP_HEAVY_DIFF "Use diffraction for p/n on A>10 target")
+#-----------------------------------------------------------------------
+
+#-----------------------------------------------------------------------
 # Find required PTL package, defaulting in internal
 # Rely on PTL::PTL imported target (since CMake 3.1)
 option(GEANT4_USE_SYSTEM_PTL "Use system zlib library" OFF)
