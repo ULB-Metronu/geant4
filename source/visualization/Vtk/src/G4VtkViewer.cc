@@ -268,3 +268,7 @@ void G4VtkViewer::ShowView() {
   renderWindowInteractor->Initialize();
   renderWindowInteractor->Start();
 }
+
+void G4VtkViewer::ExportView() {
+
+}

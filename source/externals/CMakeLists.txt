@@ -29,7 +29,7 @@ endif()
 # Alias the tasking libraries to Geant4 target naming convention
 #
 if(TARGET ptl-shared)
-  add_library(G4ptl INTERFACE)
+  add_library(G4ptl INTERFACE ../visualization/Vtk/include/G4VtkMessenger.hh ../visualization/Vtk/src/G4VtkMessenger.cc)
   add_library(PTL::ptl-shared ALIAS ptl-shared)
   target_link_libraries(G4ptl INTERFACE PTL::ptl-shared)
   install(TARGETS G4ptl

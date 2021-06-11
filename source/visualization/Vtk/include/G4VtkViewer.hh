@@ -134,6 +134,7 @@ public:
   void ClearView();
   void DrawView();
   void ShowView();
+  void ExportView();
 
   vtkNew<vtkTextActor>              infoTextActor;
   vtkNew<vtkInfoCallback>           infoCallback;

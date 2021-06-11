@@ -21,11 +21,13 @@
 GEANT4_DEFINE_MODULE(NAME G4visVtk
     HEADERS
         G4Vtk.hh
+        G4VtkMessenger.hh
         G4VtkSceneHandler.hh
         G4VtkViewer.hh
         vtkTensorGlyphColor.h
     SOURCES
         G4Vtk.cc
+        G4VtkMessenger.cc
         G4VtkSceneHandler.cc
         G4VtkViewer.cc
         vtkTensorGlyphColor.cxx
