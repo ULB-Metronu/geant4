@@ -33,9 +33,11 @@
 #ifndef G4VTKSCENEHANDLER_HH
 #define G4VTKSCENEHANDLER_HH
 
-#define G4VTKDEBUG  // Comment this out to suppress debug code.
 
 #include "G4VSceneHandler.hh"
+
+#include <map>
+#include <vector>
 
 #include "G4VtkViewer.hh"
 #pragma GCC diagnostic push
@@ -48,13 +50,22 @@
 #include "vtkTextProperty.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkActor.h"
+#include "vtkFollower.h"
 #include "vtkTextActor.h"
 #include "vtkBillboardTextActor3D.h"
 #include "vtkRegularPolygonSource.h"
+#include "vtkSphereSource.h"
 #include "vtkFeatureEdges.h"
 #include "vtkGlyph2D.h"
 #include "vtkGlyph3D.h"
+#include "vtkVertexGlyphFilter.h"
 #include "vtkMatrix4x4.h"
+#include "vtkDoubleArray.h"
+#include "vtkPointData.h"
+#include "vtkTriangleFilter.h"
+#include "vtkTensorGlyph.h"
+#include "vtkTensorGlyphColor.h"
+#include "vtkScalarsToColors.h"
 #pragma GCC diagnostic pop
 
 class G4VtkSceneHandler: public G4VSceneHandler {
@@ -76,12 +87,68 @@ public:
   // class methods if not otherwise defined to avoid warnings about
   // hiding of base class methods.
   void AddPrimitive(const G4Polymarker& polymarker)
-  {G4VSceneHandler::AddPrimitive (polymarker);}
+  {
+#ifdef G4VTKDEBUG
+    G4cout << "=================================" << G4endl;
+    G4cout << "G4VtkSceneHandler::AddPrimitive(const G4Polymarker& polymarker) called." << G4endl;
+#endif
+    G4VSceneHandler::AddPrimitive (polymarker);
+  }
   void AddPrimitive(const G4Scale& scale)
-  {G4VSceneHandler::AddPrimitive (scale);}
+  {
+#ifdef G4VTKDEBUG
+    G4cout << "=================================" << G4endl;
+    G4cout << "G4VtkSceneHandler::AddScale(const G4Scale& scale) called." << G4endl;
+#endif
+    G4VSceneHandler::AddPrimitive(scale);
+  }
+
+  void AddSolid(const G4Box& box);
+  void Modified();
+  void Clear();
 
 protected:
   static G4int         fSceneIdCount;  // Counter for Vtk scene handlers.
+
+  // maps for polylines
+  std::map<std::size_t, const G4VisAttributes*>             polylineVisAttributesMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPoints>>         polylineDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkCellArray>>      polylineLineMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyData>>       polylinePolyDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyDataMapper>> polylinePolyDataMapperMap;
+  std::map<std::size_t, vtkSmartPointer<vtkActor>>          polylinePolyDataActorMap;
+
+  // maps for circles
+  std::map<std::size_t, const G4VisAttributes*>                circleVisAttributesMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPoints>>            circleDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyData>>          circlePolyDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkVertexGlyphFilter>> circleFilterMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyDataMapper>>    circlePolyDataMapperMap;
+  std::map<std::size_t, vtkSmartPointer<vtkActor>>             circlePolyDataActorMap;
+
+  // maps for squares
+  std::map<std::size_t, const G4VisAttributes*>                squareVisAttributesMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPoints>>            squareDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyData>>          squarePolyDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkVertexGlyphFilter>> squareFilterMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyDataMapper>>    squarePolyDataMapperMap;
+  std::map<std::size_t, vtkSmartPointer<vtkActor>>             squarePolyDataActorMap;
+
+  // map for polyhedra
+  std::map<std::size_t, const G4VisAttributes*>                polyhedronVisAttributesMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPoints>>            polyhedronDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkCellArray>>         polyhedronPolyMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyData>>          polyhedronPolyDataMap;
+  std::map<std::size_t, std::size_t>                           polyhedronPolyDataCountMap;
+
+  // map for polyhedra instances
+  std::map<std::size_t, vtkSmartPointer<vtkPoints>>                 instancePositionMap;
+  std::map<std::size_t, vtkSmartPointer<vtkDoubleArray>>            instanceRotationMap;
+  std::map<std::size_t, vtkSmartPointer<vtkDoubleArray>>            instanceColoursMap;
+  std::map<std::size_t, vtkSmartPointer<vtkPolyData>>               instancePolyDataMap;
+  std::map<std::size_t, vtkSmartPointer<vtkTensorGlyphColor>>       instanceTensorGlyphMap;
+  std::map<std::size_t, vtkSmartPointer<vtkActor>>                  instanceActorMap;
+
 
 private:
 #ifdef G4VTKDEBUG

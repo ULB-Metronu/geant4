@@ -109,6 +109,10 @@
 #include "G4Qt3D.hh"
 #endif
 
+#ifdef G4VIS_USE_VTK
+#include "G4Vtk.hh"
+#endif
+
 // The inline keyword prevents the compiler making an external
 // reference even though they cannot actually be inlined since they
 // are virtual functions.  This prevents a "multiple definition" error
@@ -243,6 +247,12 @@ G4VisExecutive::RegisterGraphicsSystems () {
 #ifdef G4VIS_USE_QT3D
   RegisterGraphicsSystem (new G4Qt3D);
 #endif
+
+#ifdef G4VIS_USE_VTK
+  G4Vtk *vtkVM = new G4Vtk();
+  RegisterGraphicsSystem(vtkVM);
+#endif
+
 }
 
 // See comments about inlining above.

@@ -752,7 +752,7 @@ void G4PhysicalVolumeModel::DescribeSolid
 	  ("cutaway_solid", pSol, pCutawaySolid, theAT.inverse());
       }
 
-      const G4Polyhedron* pResultantPolyhedron = pResultantSolid->GetPolyhedron();
+      G4Polyhedron* pResultantPolyhedron = pResultantSolid->GetPolyhedron();
       if (!pResultantPolyhedron) {
         if (fpMP->IsWarning())
           G4cout <<
@@ -778,6 +778,7 @@ void G4PhysicalVolumeModel::DescribeSolid
       if (pResultantPolyhedron) {
         // Finally, draw polyhedron...
         sceneHandler.BeginPrimitives(theAT);
+        pResultantPolyhedron->SetVisAttributes(pVisAttribs);
         sceneHandler.AddPrimitive(*pResultantPolyhedron);
         sceneHandler.EndPrimitives();
       }

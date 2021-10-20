@@ -29,11 +29,14 @@
 
 G4Polyhedron::G4Polyhedron ():
   fNumberOfRotationStepsAtTimeOfCreation (fNumberOfRotationSteps)
-{}
+{
+#if (defined(G4VIS_USE_CGAL))
+  cgal_sf = nullptr;
+#endif
+}
 
 G4Polyhedron::~G4Polyhedron () {
 #if G4VIS_USE_CGAL
-  if (cgal_sf != nullptr)
     delete cgal_sf;
 #endif
 }
@@ -41,8 +44,11 @@ G4Polyhedron::~G4Polyhedron () {
 G4Polyhedron::G4Polyhedron (const HepPolyhedron& from)
   : HepPolyhedron(from)
 {
-  fNumberOfRotationStepsAtTimeOfCreation =
-    from.fNumberOfRotationSteps;
+  fNumberOfRotationStepsAtTimeOfCreation = from.fNumberOfRotationSteps;
+
+#if (defined(G4VIS_USE_CGAL))
+  cgal_sf = nullptr;
+#endif
 }
 
 #if (defined(G4VIS_USE_CGAL))
@@ -62,10 +68,10 @@ Surface_mesh* G4Polyhedron::GetCGALSurfaceMesh() {
       cgal_sf->add_vertex(p);
     }
 
-    for(int iFacet = 1; iFacet <= nFacet; iFacet++) {
+    G4int nNode = 0;
+    G4int *iNode = new G4int[4];
 
-      G4int nNode = 0;
-      G4int *iNode = new G4int[4];
+    for(int iFacet = 1; iFacet <= nFacet; iFacet++) {
 
       this->GetFacet(iFacet, nNode, iNode);
 
@@ -82,12 +88,15 @@ Surface_mesh* G4Polyhedron::GetCGALSurfaceMesh() {
                           Surface_mesh::Vertex_index(iNode[3]-1));
       }
       else  {
-        std::cout << "Surface_mesh* G4Polyhedron::GetCGALSurfaceMesh() > 4 vertices in face" << std::endl;
+        std::cout << "Surface_mesh* G4Polyhedron::GetCGALSurfaceMesh() > not 3 or 4 vertices in face" << std::endl;
       }
-      delete[] iNode;
     }
 
+    delete[] iNode;
+
     CGAL::Polygon_mesh_processing::triangulate_faces(*cgal_sf);
+
+    // cgalCheckMesh(cgal_sf);
 
     return cgal_sf;
   }
@@ -252,3 +261,25 @@ std::ostream& operator<<(std::ostream& os, const G4Polyhedron& polyhedron)
      << (const HepPolyhedron&)polyhedron;
   return os;
 }
+
+#if (defined(G4VIS_USE_CGAL))
+
+void cgalCheckMesh(Surface_mesh *sm) {
+  bool valid = sm->is_valid();
+  if (!valid) G4cout << sm << " not valid" << G4endl;
+
+  bool closed = CGAL::is_closed(*sm);
+  if (!closed) G4cout << sm << " not closed" << G4endl;
+
+  bool triangle = CGAL::is_triangle_mesh(*sm);
+  if (!triangle) G4cout << sm << " not triangle mesh" << G4endl;
+
+  bool outward = CGAL::Polygon_mesh_processing::is_outward_oriented(*sm);
+  if (!outward) G4cout << sm << " not outward" << G4endl;
+
+  bool selfinter = CGAL::Polygon_mesh_processing::does_self_intersect(*sm);
+  if (selfinter) G4cout << sm << " self intersects" << G4endl;
+
+  return;
+}
+#endif

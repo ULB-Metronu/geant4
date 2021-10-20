@@ -16,6 +16,10 @@ add_definitions(-DG4EM_ALLOC_EXPORT)
 # Add allocation export symbol for the hadronic category
 add_definitions(-DG4HADRONIC_ALLOC_EXPORT)
 
+if (GEANT4_USE_FTFP_HEAVY_DIFF)
+  add_definitions(-DGEANT4_USE_FTFP_HEAVY_DIFF)
+endif()
+
 add_subdirectory(biasing)
 add_subdirectory(cuts)
 add_subdirectory(decay)

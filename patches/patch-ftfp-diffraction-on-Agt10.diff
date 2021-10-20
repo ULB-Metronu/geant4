@@ -1,0 +1,56 @@
+diff --git a/cmake/Modules/G4OptionalComponents.cmake b/cmake/Modules/G4OptionalComponents.cmake
+index 5e31d8a19..97e1081c8 100644
+--- a/cmake/Modules/G4OptionalComponents.cmake
++++ b/cmake/Modules/G4OptionalComponents.cmake
+@@ -170,6 +170,13 @@ endif()
+ 
+ geant4_add_feature(GEANT4_USE_TBB "Enable (optional) use of TBB as a tasking backend")
+ 
++#-----------------------------------------------------------------------
++#   Allow diffractive scattering from p/n on A>10 target
++#
++option(GEANT4_USE_FTFP_HEAVY_DIFF "Use diffraction for p/n on A>10 target" OFF)
++geant4_add_feature(GEANT4_USE_FTFP_HEAVY_DIFF "Use diffraction for p/n on A>10 target")
++#-----------------------------------------------------------------------
++
+ #-----------------------------------------------------------------------
+ # Find required PTL package, defaulting in internal
+ # Rely on PTL::PTL imported target (since CMake 3.1)
+diff --git a/source/processes/CMakeLists.txt b/source/processes/CMakeLists.txt
+index 0e9843169..1e2d22a00 100644
+--- a/source/processes/CMakeLists.txt
++++ b/source/processes/CMakeLists.txt
+@@ -16,6 +16,10 @@ add_definitions(-DG4EM_ALLOC_EXPORT)
+ # Add allocation export symbol for the hadronic category
+ add_definitions(-DG4HADRONIC_ALLOC_EXPORT)
+ 
++if (GEANT4_USE_FTFP_HEAVY_DIFF)
++  add_definitions(-DGEANT4_USE_FTFP_HEAVY_DIFF)
++endif()
++
+ add_subdirectory(biasing)
+ add_subdirectory(cuts)
+ add_subdirectory(decay)
+diff --git a/source/processes/hadronic/models/parton_string/diffraction/src/G4FTFParameters.cc b/source/processes/hadronic/models/parton_string/diffraction/src/G4FTFParameters.cc
+index 24fbc7262..cc90efff8 100644
+--- a/source/processes/hadronic/models/parton_string/diffraction/src/G4FTFParameters.cc
++++ b/source/processes/hadronic/models/parton_string/diffraction/src/G4FTFParameters.cc
+@@ -427,6 +427,7 @@ void G4FTFParameters::InitForInteraction( const G4ParticleDefinition* particle,
+       SetParams( 4, 0.0, 0.0 ,0.0, 0.0 , 0.0, 0.0  ,     0.0);
+     }
+ 
++#ifndef GEANT4_USE_FTFP_HEAVY_DIFF
+     if ( AbsProjectileBaryonNumber > 10  ||  NumberOfTargetNucleons > 10 ) {
+       //
+       // It is not decided what to do with diffraction dissociation in Had-Nucl and Nucl-Nucl interactions
+@@ -438,6 +439,7 @@ void G4FTFParameters::InitForInteraction( const G4ParticleDefinition* particle,
+       if ( ! fParCollBaryonProj.IsTgtDiffDissociation() )
+          SetParams( 3,       0.0, 0.0 ,           0.0  , 0.0 , 0.0, 0.0   , -100.0  );  // Target diffraction
+     }
++#endif
+ 
+     SetDeltaProbAtQuarkExchange( fParCollBaryonProj.GetDeltaProbAtQuarkExchange() );
+ 
+-- 
+2.31.0
+

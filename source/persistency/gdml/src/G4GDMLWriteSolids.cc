@@ -122,13 +122,13 @@ void G4GDMLWriteSolids::MultiUnionWrite(xercesc::DOMElement* solElement,
        (std::fabs(pos.y()) > kLinearPrecision) ||
        (std::fabs(pos.z()) > kLinearPrecision))
     {
-      PositionWrite(multiUnionNodeElement, name + "_" + nodeName + "_pos", pos);
+      PositionWrite(multiUnionNodeElement,name+"_"+nodeName+"_pos",pos);
     }
     if((std::fabs(rot.x()) > kAngularPrecision) ||
        (std::fabs(rot.y()) > kAngularPrecision) ||
        (std::fabs(rot.z()) > kAngularPrecision))
     {
-      RotationWrite(multiUnionNodeElement, name + "_" + nodeName + "_rot", rot);
+      RotationWrite(multiUnionNodeElement,name+"_"+nodeName+"_rot",rot);
     }
     multiUnionElement->appendChild(multiUnionNodeElement);  // Append node
   }

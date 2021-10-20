@@ -427,6 +427,7 @@ void G4FTFParameters::InitForInteraction( const G4ParticleDefinition* particle,
       SetParams( 4, 0.0, 0.0 ,0.0, 0.0 , 0.0, 0.0  ,     0.0);
     }
 
+#ifndef GEANT4_USE_FTFP_HEAVY_DIFF
     if ( AbsProjectileBaryonNumber > 10  ||  NumberOfTargetNucleons > 10 ) {
       //
       // It is not decided what to do with diffraction dissociation in Had-Nucl and Nucl-Nucl interactions
@@ -438,6 +439,7 @@ void G4FTFParameters::InitForInteraction( const G4ParticleDefinition* particle,
       if ( ! fParCollBaryonProj.IsTgtDiffDissociation() )
          SetParams( 3,       0.0, 0.0 ,           0.0  , 0.0 , 0.0, 0.0   , -100.0  );  // Target diffraction
     }
+#endif
 
     SetDeltaProbAtQuarkExchange( fParCollBaryonProj.GetDeltaProbAtQuarkExchange() );
 
